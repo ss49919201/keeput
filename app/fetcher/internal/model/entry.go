@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type EntryForRead struct {
+type Entry struct {
 	Title       string
 	Body        string
 	PublishedAt time.Time
