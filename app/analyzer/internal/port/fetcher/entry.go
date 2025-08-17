@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/samber/mo"
-	"github.com/ss49919201/fight-op/app/analyze/internal/model"
+	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
 )
 
 type FetchAllByDate = func(from, to time.Time) mo.Result[[]*model.Entry]
