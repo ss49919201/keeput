@@ -8,12 +8,19 @@ import (
 	"github.com/samber/lo"
 	"github.com/samber/mo"
 	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
+	"github.com/ss49919201/fight-op/app/analyzer/internal/port/fetcher"
 )
 
-func FetchAllByDate(ctx context.Context, from, to time.Time) mo.Result[[]*model.Entry] {
+func NewFetchAllByDate(feedURL string) fetcher.FetchAllByDate {
+	return func(ctx context.Context, from, to time.Time) mo.Result[[]*model.Entry] {
+		return FetchAllByDate(ctx, feedURL, from, to)
+	}
+}
+
+func FetchAllByDate(ctx context.Context, feedURL string, from, to time.Time) mo.Result[[]*model.Entry] {
 	fp := gofeed.NewParser()
 
-	feed, err := fp.ParseURLWithContext("https://zenn.dev/ss49919201/feed", ctx)
+	feed, err := fp.ParseURLWithContext(feedURL, ctx)
 	if err != nil {
 		return mo.Err[[]*model.Entry](err)
 	}
