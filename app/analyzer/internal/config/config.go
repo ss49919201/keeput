@@ -1,4 +1,4 @@
-package env
+package config
 
 // TODP: load config
 func FeedURLZenn() string {

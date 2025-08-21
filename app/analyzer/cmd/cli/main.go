@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
+
+	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/controller/cli"
 )
 
 func init() {
@@ -14,10 +17,10 @@ func init() {
 }
 
 func main() {
-	result := run()
-	if result.IsError() {
-		slog.Error("failed to run cli program", slog.String("error", result.Error().Error()))
+	err := cli.Analyze(context.Background())
+	if err != nil {
+		slog.Error("failed to run cli program", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	slog.Info("success")
+	slog.Info("success command")
 }
