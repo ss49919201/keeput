@@ -1,0 +1,13 @@
+on:
+  schedule:
+    - cron: "*/1 * * * *"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./app
+    steps:
+      - run: go run analyzer/cmd/cli/main.go
