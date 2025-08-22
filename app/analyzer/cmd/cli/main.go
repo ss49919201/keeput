@@ -11,7 +11,9 @@ import (
 func init() {
 	slog.SetDefault(
 		slog.New(
-			slog.NewJSONHandler(os.Stdout, nil),
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				Level: slog.LevelWarn, // TODO: load from config
+			}),
 		),
 	)
 }
