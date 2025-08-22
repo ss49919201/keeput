@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: "*/1 * * * *"
+    - cron: "0 15 * * *"
 
 jobs:
   analyze:
@@ -8,6 +8,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./app
+        working-directory: app
     steps:
       - run: go run analyzer/cmd/cli/main.go
