@@ -11,7 +11,15 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: haskell-actions/setup@7909071ceec0344debcc968c6c7a96a52e8dd0d7 # v2.8.1
+        with:
+          ghc-version: 9.2.8
+          cabal-version: 2.4
       - id: analyze
         run: go run analyzer/cmd/cli/main.go | xargs -Ianalyzec_result_value echo "ANALYZE_RESULT=analyzec_result_value"  >> "$GITHUB_OUTPUT"
         working-directory: app
-      - run: echo ${{ steps.analyze.outputs.ANALYZE_RESULT }}
+      - id: notify
+        env: 
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
+        run: echo ${{ steps.analyze.outputs.ANALYZE_RESULT }} | cabal run
+        working-directory: app/notifier
