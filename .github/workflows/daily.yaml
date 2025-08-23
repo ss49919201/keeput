@@ -4,7 +4,7 @@ on:
       - main
 
 jobs:
-  analyze:
+  exec-app:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -14,7 +14,7 @@ jobs:
       - uses: haskell-actions/setup@7909071ceec0344debcc968c6c7a96a52e8dd0d7 # v2.8.1
         with:
           ghc-version: 9.2.8
-          cabal-version: 2.4
+          cabal-version: 3.6.2
       - id: analyze
         run: go run analyzer/cmd/cli/main.go | xargs -Ianalyzec_result_value echo "ANALYZE_RESULT=analyzec_result_value"  >> "$GITHUB_OUTPUT"
         working-directory: app
