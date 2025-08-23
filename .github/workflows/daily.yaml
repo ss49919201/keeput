@@ -1,6 +1,7 @@
 on:
-  schedule:
-    - cron: "0 15 * * *"
+  push:
+    branches:
+      - main
 
 jobs:
   analyze:
@@ -8,6 +9,8 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: app
     steps:
-      - run: go run analyzer/cmd/cli/main.go
+      - id: analyze
+        run: go run analyzer/cmd/cli/main.go | xargs -Ianalyzec_result_value echo "ANALYZE_RESULT=analyzec_result_value"  >> "$GITHUB_OUTPUT"
+        working-directory: app
+      - run: echo ${{ steps.analyze.outputs.ANALYZE_RESULT }}
