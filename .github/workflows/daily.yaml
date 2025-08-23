@@ -23,5 +23,5 @@ jobs:
       - id: notify
         env: 
           SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
-        run: echo ${{ steps.analyze.outputs.ANALYZE_RESULT }} | cabal run
+        run: echo '${{ steps.analyze.outputs.ANALYZE_RESULT }}' | cabal run
         working-directory: app/notifier
