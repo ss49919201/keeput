@@ -16,7 +16,9 @@ jobs:
           ghc-version: 9.2.8
           cabal-version: 3.6.2
       - id: analyze
-        run: go run analyzer/cmd/cli/main.go | xargs -Ianalyzec_result_value echo "ANALYZE_RESULT=analyzec_result_value"  >> "$GITHUB_OUTPUT"
+        run: |
+          ANALYZE_RESULT=$(go run analyzer/cmd/cli/main.go)
+          echo "ANALYZE_RESULT=$ANALYZE_RESULT" >> "$GITHUB_OUTPUT"
         working-directory: app
       - id: notify
         env: 
