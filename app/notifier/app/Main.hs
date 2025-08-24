@@ -12,7 +12,7 @@ import Network.HTTP.Simple
 import System.Environment (lookupEnv)
 
 newtype ReqBody = ReqBody {text :: String}
-  deriving (Generic, Show)
+  deriving (Generic)
 
 instance ToJSON ReqBody
 
