@@ -60,9 +60,12 @@ notify value = do
       either (putStrLn . ("sendReq failed: " ++)) (const $ return ()) result
     Nothing -> putStrLn "failed to get isGoalAchieved"
 
+getJsonFromStdio :: IO (Maybe Object)
+getJsonFromStdio = decode <$> LBS.getContents
+
 main :: IO ()
 main = do
-  decoded <- decode <$> LBS.getContents
-  case (decoded :: Maybe Object) of
+  decoded <- getJsonFromStdio
+  case decoded of
     Just value -> notify value
     Nothing -> putStrLn "failed to decode json string."
