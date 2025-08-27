@@ -12,3 +12,11 @@ var feedURLZenn = sync.OnceValue(func() string {
 func FeedURLZenn() string {
 	return feedURLZenn()
 }
+
+var feedURLHatena = sync.OnceValue(func() string {
+	return os.Getenv("FEED_URL_HATENA")
+})
+
+func FeedURLHatena() string {
+	return feedURLHatena()
+}
