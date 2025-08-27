@@ -23,12 +23,15 @@ reqBody :: Bool -> ReqBody
 reqBody True = ReqBody "目標達成です🎊よく頑張りました！"
 reqBody False = ReqBody "目標未達です😢これから頑張りましょう！"
 
-loadSlackWebhookUrl :: IO (Maybe String)
-loadSlackWebhookUrl = do
-  maybeUrl <- lookupEnv "SLACK_WEBHOOK_URL"
+loadValueFromEnv :: String -> IO (Maybe String)
+loadValueFromEnv key = do
+  maybeUrl <- lookupEnv key
   return $ case maybeUrl of
     Just url | not (null url) -> Just url
     _ -> Nothing
+
+loadSlackWebhookUrl :: IO (Maybe String)
+loadSlackWebhookUrl = loadValueFromEnv "SLACK_WEBHOOK_URL"
 
 sendReq :: ReqBody -> IO (Either String ())
 sendReq reqBody = do
