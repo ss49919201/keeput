@@ -33,6 +33,20 @@ loadValueFromEnv key = do
 loadSlackWebhookUrl :: IO (Maybe String)
 loadSlackWebhookUrl = loadValueFromEnv "SLACK_WEBHOOK_URL"
 
+notificationCondition :: IO (Maybe String)
+notificationCondition = do
+  loadValueFromEnv "NOTIFICATION_CONDITION"
+
+data NotificationCondition
+  = OnFailure
+  | OnSuccess
+  | Always
+
+parseNotificationCondition :: Maybe String -> NotificationCondition
+parseNotificationCondition (Just "on_failure") = OnFailure
+parseNotificationCondition (Just "on_success") = OnFailure
+parseNotificationCondition _ = Always
+
 sendReq :: ReqBody -> IO (Either String ())
 sendReq reqBody = do
   maybeUrl <- loadSlackWebhookUrl
