@@ -1,4 +1,4 @@
-package zenn
+package hatena
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 func NewFetchAllByDate() fetcher.FetchAllByDate {
 	return func(ctx context.Context, from, to time.Time) mo.Result[[]*model.Entry] {
-		return FetchAllByDate(ctx, config.FeedURLZenn(), from, to)
+		return FetchAllByDate(ctx, config.FeedURLHatena(), from, to)
 	}
 }
 
