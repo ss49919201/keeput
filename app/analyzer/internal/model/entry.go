@@ -13,8 +13,13 @@ type Entry struct {
 
 type EntryPlatformType int
 
+func (e EntryPlatformType) IsZero() bool {
+	return e == EntryPlatformTypeZero
+}
+
 const (
-	EntryPlatformTypeZenn EntryPlatformType = iota + 1
+	EntryPlatformTypeZero EntryPlatformType = iota
+	EntryPlatformTypeZenn
 	EntryPlatformTypeHatena
 )
 

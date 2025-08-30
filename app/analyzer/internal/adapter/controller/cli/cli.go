@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/samber/lo"
+	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/fetcher/hatena"
 	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/fetcher/zenn"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/config"
+	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
 	usecaseport "github.com/ss49919201/fight-op/app/analyzer/internal/port/usecase"
 	usecaseadapter "github.com/ss49919201/fight-op/app/analyzer/internal/usecase"
 )
@@ -16,8 +18,20 @@ type analyezeOutput struct {
 }
 
 func Analyze(ctx context.Context) error {
+	var entryPlatformType model.EntryPlatformType
+	for entryPlatform := range model.EntryPlatformIteratorOrderByPriorityAsc() {
+		entryPlatformType = entryPlatform.Type()
+		break
+	}
+
+	fetcher := lo.If(
+		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchAllByDate(),
+	).ElseIf(
+		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchAllByDate(),
+	).Else(hatena.NewFetchAllByDate())
+
 	result := usecaseadapter.NewAnalyze(
-		zenn.NewFetchAllByDate(config.FeedURLZenn()),
+		fetcher,
 	)(ctx, &usecaseport.AnalyzeInput{})
 	if result.IsError() {
 		return result.Error()
