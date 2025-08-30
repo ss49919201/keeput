@@ -19,14 +19,18 @@ func Fetch(ctx context.Context, feedURL string) mo.Result[[]*model.Entry] {
 	}
 
 	return mo.Ok(
-		lo.Map(
+		lo.FilterMap(
 			feed.Items,
-			func(item *gofeed.Item, _ int) *model.Entry {
+			func(item *gofeed.Item, _ int) (*model.Entry, bool) {
+				if item.PublishedParsed == nil {
+					return nil, false
+				}
+
 				return &model.Entry{
 					Title:       item.Title,
 					Body:        item.Content,
 					PublishedAt: *item.PublishedParsed,
-				}
+				}, true
 			},
 		),
 	)
