@@ -6,6 +6,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/samber/mo"
+	"github.com/ss49919201/fight-op/app/analyzer/internal/appctx"
 	"github.com/ss49919201/fight-op/app/analyzer/internal/date"
 	"github.com/ss49919201/fight-op/app/analyzer/internal/port/fetcher"
 	"github.com/ss49919201/fight-op/app/analyzer/internal/port/usecase"
@@ -18,7 +19,7 @@ func NewAnalyze(fetchAllByDate fetcher.FetchAllByDate) usecase.Analyze {
 }
 
 func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchAllByDate fetcher.FetchAllByDate) mo.Result[*usecase.AnalyzeOutput] {
-	now := time.Now()
+	now := appctx.GetNowOr(ctx, time.Now())
 	beginningOfToday := date.BeginningOfDay(now)
 	beginningOfBeforeXdays := date.AddDays(
 		beginningOfToday,
