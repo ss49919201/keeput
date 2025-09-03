@@ -23,9 +23,9 @@ func TestEntryPlatformIteratorOrderByPriorityAsc(t *testing.T) {
 
 func TestIsGoalAchieved(t *testing.T) {
 	type args struct {
-		entry    *Entry
-		now      time.Time
-		goalType GoalType
+		publishedAt time.Time
+		now         time.Time
+		goalType    GoalType
 	}
 	tests := []struct {
 		name string
@@ -35,11 +35,7 @@ func TestIsGoalAchieved(t *testing.T) {
 		{
 			"not achieve when entry is published 8 days ago for recent week goal",
 			args{
-				&Entry{
-					Title:       "title",
-					Body:        "body",
-					PublishedAt: time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
-				},
+				time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC),
 				GoalTypeRecentWeek,
 			},
@@ -48,11 +44,7 @@ func TestIsGoalAchieved(t *testing.T) {
 		{
 			"achieve when entry is published exactly 7 days ago for recent week goal",
 			args{
-				&Entry{
-					Title:       "title",
-					Body:        "body",
-					PublishedAt: time.Date(2025, 1, 3, 0, 0, 0, 0, time.UTC),
-				},
+				time.Date(2025, 1, 3, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC),
 				GoalTypeRecentWeek,
 			},
@@ -61,11 +53,7 @@ func TestIsGoalAchieved(t *testing.T) {
 		{
 			"achieve when entry is published 30 days ago for recent month goal",
 			args{
-				&Entry{
-					Title:       "title",
-					Body:        "body",
-					PublishedAt: time.Date(2025, 8, 1, 0, 0, 0, 0, time.UTC),
-				},
+				time.Date(2025, 8, 1, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 8, 31, 0, 0, 0, 0, time.UTC),
 				GoalTypeRecentMonth,
 			},
@@ -74,11 +62,7 @@ func TestIsGoalAchieved(t *testing.T) {
 		{
 			"not achieve when entry is published 31 days ago for recent month goal",
 			args{
-				&Entry{
-					Title:       "title",
-					Body:        "body",
-					PublishedAt: time.Date(2025, 7, 31, 0, 0, 0, 0, time.UTC),
-				},
+				time.Date(2025, 7, 31, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 8, 31, 0, 0, 0, 0, time.UTC),
 				GoalTypeRecentMonth,
 			},
@@ -87,7 +71,7 @@ func TestIsGoalAchieved(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsGoalAchieved(tt.args.entry, tt.args.now, tt.args.goalType); got != tt.want {
+			if got := IsGoalAchieved(tt.args.publishedAt, tt.args.now, tt.args.goalType); got != tt.want {
 				t.Errorf("IsGoalAchieved() = %v, want %v", got, tt.want)
 			}
 		})

@@ -21,7 +21,7 @@ const (
 	GoalTypeRecentMonth GoalType = iota + 1
 )
 
-func IsGoalAchieved(entry *Entry, now time.Time, goalType GoalType) bool {
+func IsGoalAchieved(publishedAt, now time.Time, goalType GoalType) bool {
 	beginningOfToday := date.BeginningOfDay(now)
 	beginningOfBeforeXdays := date.AddDays(
 		beginningOfToday,
@@ -30,7 +30,7 @@ func IsGoalAchieved(entry *Entry, now time.Time, goalType GoalType) bool {
 			Else(-7),
 	)
 
-	return !entry.PublishedAt.Before(beginningOfBeforeXdays)
+	return !publishedAt.Before(beginningOfBeforeXdays)
 }
 
 type EntryPlatformType int
