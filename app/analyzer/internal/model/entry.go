@@ -3,12 +3,34 @@ package model
 import (
 	"iter"
 	"time"
+
+	"github.com/samber/lo"
+	"github.com/ss49919201/fight-op/app/analyzer/internal/date"
 )
 
 type Entry struct {
 	Title       string
 	Body        string
 	PublishedAt time.Time
+}
+
+type GoalType int
+
+const (
+	GoalTypeRecentWeek  GoalType = iota + 1
+	GoalTypeRecentMonth GoalType = iota + 1
+)
+
+func IsGoalAchieved(entry *Entry, now time.Time, goalType GoalType) bool {
+	beginningOfToday := date.BeginningOfDay(now)
+	beginningOfBeforeXdays := date.AddDays(
+		beginningOfToday,
+		lo.If(goalType == GoalTypeRecentWeek, -7).
+			ElseIf(goalType == GoalTypeRecentMonth, -30).
+			Else(-7),
+	)
+
+	return !entry.PublishedAt.Before(beginningOfBeforeXdays)
 }
 
 type EntryPlatformType int

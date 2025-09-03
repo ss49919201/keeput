@@ -4,17 +4,11 @@ import (
 	"context"
 
 	"github.com/samber/mo"
-)
-
-type GoalType int
-
-const (
-	RecentWeek  GoalType = iota + 1
-	RecentMonth GoalType = iota + 1
+	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
 )
 
 type AnalyzeInput struct {
-	Goal GoalType
+	Goal model.GoalType
 }
 type AnalyzeOutput struct {
 	IsGoalAchieved bool

@@ -25,10 +25,10 @@ func Analyze(ctx context.Context) error {
 	}
 
 	fetcher := lo.If(
-		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchAllByDate(),
+		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchLatest(),
 	).ElseIf(
-		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchAllByDate(),
-	).Else(hatena.NewFetchAllByDate())
+		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchLatest(),
+	).Else(hatena.NewFetchLatest())
 
 	result := usecaseadapter.NewAnalyze(
 		fetcher,
