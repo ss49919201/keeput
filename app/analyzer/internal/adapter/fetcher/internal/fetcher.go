@@ -10,6 +10,7 @@ import (
 	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
 )
 
+// NOTE: Fetch excludes records where published at is nil.
 func Fetch(ctx context.Context, feedURL string) mo.Result[[]*model.Entry] {
 	fp := gofeed.NewParser()
 
