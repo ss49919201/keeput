@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Usecase.Notifier where
+module Service.Notifier where
 
 import Data.Aeson
 import Data.Aeson.Types (parseMaybe)

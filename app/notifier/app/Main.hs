@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -7,7 +6,7 @@ module Main where
 import Data.Aeson
 import Data.Aeson.Types (parseMaybe)
 import Data.ByteString.Lazy qualified as LBS
-import Usecase.Notifier
+import Service.Notifier (notify)
 
 getJsonFromStdio :: IO (Maybe Object)
 getJsonFromStdio = decode <$> LBS.getContents
