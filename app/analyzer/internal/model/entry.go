@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/samber/lo"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/date"
+	"github.com/ss49919201/keeput/app/analyzer/internal/date"
 )
 
 type Entry struct {

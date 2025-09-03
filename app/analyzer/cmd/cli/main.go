@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/controller/cli"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/appctx"
+	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/controller/cli"
+	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 )
 
 func init() {

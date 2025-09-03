@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/samber/lo"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/fetcher/hatena"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/fetcher/zenn"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
-	usecaseport "github.com/ss49919201/fight-op/app/analyzer/internal/port/usecase"
-	usecaseadapter "github.com/ss49919201/fight-op/app/analyzer/internal/usecase"
+	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/hatena"
+	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/zenn"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
+	usecaseport "github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
+	usecaseadapter "github.com/ss49919201/keeput/app/analyzer/internal/usecase"
 )
 
 type analyezeOutput struct {

@@ -6,10 +6,10 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/samber/mo"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/adapter/fetcher/internal"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/config"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/port/fetcher"
+	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/internal"
+	"github.com/ss49919201/keeput/app/analyzer/internal/config"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 )
 
 func NewFetchAllByDate() fetcher.FetchAllByDate {

@@ -7,7 +7,7 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/samber/lo"
 	"github.com/samber/mo"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 )
 
 // NOTE: Fetch excludes records where published at is nil.

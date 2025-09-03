@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-このディレクトリは fight-op システムのアーキテクチャ決定記録を管理します。
+このディレクトリは keeput システムのアーキテクチャ決定記録を管理します。
 
 ## ADR について
 

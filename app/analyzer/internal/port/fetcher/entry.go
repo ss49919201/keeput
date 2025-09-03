@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/samber/mo"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 )
 
 type FetchAllByDate = func(ctx context.Context, from, to time.Time) mo.Result[[]*model.Entry]

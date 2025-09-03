@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/samber/mo"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/appctx"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/model"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/port/fetcher"
-	"github.com/ss49919201/fight-op/app/analyzer/internal/port/usecase"
+	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 )
 
 func NewAnalyze(fetchAllByDate fetcher.FetchLatest) usecase.Analyze {
