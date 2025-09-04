@@ -23,6 +23,7 @@ jobs:
       - id: analyze
         env:
           FEED_URL_ZENN: ${{ vars.FEED_URL_ZENN }}
+          FEED_URL_HATENA: ${{ vars.FEED_URL_HATENA }}
         run: |
           ANALYZE_RESULT=$(go run analyzer/cmd/cli/main.go)
           echo "ANALYZE_RESULT=$ANALYZE_RESULT" >> "$GITHUB_OUTPUT"
