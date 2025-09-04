@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -28,13 +27,8 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 
 	report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
 
-	var errs error
 	if err := printAnalysisReport(report); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("failed to print anlysis report: %w", err))
-	}
-
-	if err != nil {
-		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to fetch latest entry: %w", err))
+		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
 	}
 
 	return mo.Ok(&usecase.AnalyzeOutput{
