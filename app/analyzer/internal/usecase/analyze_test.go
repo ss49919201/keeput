@@ -35,7 +35,7 @@ func TestAnalyze(t *testing.T) {
 						return mo.Ok(mo.Some(&model.Entry{
 							Title:       "Go 言語の slice について",
 							Body:        "Go 言語の slice は参照型です。気をつけましょう。",
-							PublishedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+							PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
 						}))
 					}
 				},
@@ -46,9 +46,10 @@ func TestAnalyze(t *testing.T) {
 							LatestEntry: mo.Some(&model.Entry{
 								Title:       "Go 言語の slice について",
 								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
-								PublishedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
 							}),
 						}, report)
+
 						return nil
 					}
 				},
@@ -70,8 +71,11 @@ func TestAnalyze(t *testing.T) {
 					}
 				},
 				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
-					return func(*model.AnalysisReport) error {
-						t.Errorf("PrintAnalysisReport is not be expected to be called")
+					return func(report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: false,
+							LatestEntry:    mo.None[*model.Entry](),
+						}, report)
 
 						return nil
 					}
