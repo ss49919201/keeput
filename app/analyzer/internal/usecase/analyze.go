@@ -23,8 +23,9 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 		return mo.Err[*usecase.AnalyzeOutput](err)
 	}
 
+	report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
+
 	return mo.Ok(&usecase.AnalyzeOutput{
-		IsGoalAchieved: latestEntry.IsPresent() &&
-			model.IsGoalAchieved(latestEntry.MustGet().PublishedAt, appctx.GetNowOr(ctx, time.Now()), in.Goal),
+		IsGoalAchieved: report.IsGoalAchieved,
 	})
 }
