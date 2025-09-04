@@ -19,6 +19,7 @@ jobs:
         with:
           go-version-file: ./app/go.mod
       - run: go mod download
+        working-directory: app
       - id: analyze
         env:
           FEED_URL_ZENN: ${{ vars.FEED_URL_ZENN }}
