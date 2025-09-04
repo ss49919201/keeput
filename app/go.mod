@@ -6,7 +6,7 @@ require (
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/samber/lo v1.51.0
 	github.com/samber/mo v1.15.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.11.1
 )
 
 require (

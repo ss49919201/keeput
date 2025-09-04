@@ -2,29 +2,36 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/samber/mo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 )
 
-func NewAnalyze(fetchAllByDate fetcher.FetchLatest) usecase.Analyze {
+func NewAnalyze(fetchAllByDate fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport) usecase.Analyze {
 	return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
-		return analyze(ctx, in, fetchAllByDate)
+		return analyze(ctx, in, fetchAllByDate, printAnalysisReport)
 	}
 }
 
-func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest) mo.Result[*usecase.AnalyzeOutput] {
+func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	latestEntry, err := fetchLatest(ctx).Get()
 	if err != nil {
-		return mo.Err[*usecase.AnalyzeOutput](err)
+		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to fetch latest entry: %w", err))
+	}
+
+	report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
+
+	if err := printAnalysisReport(report); err != nil {
+		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
 	}
 
 	return mo.Ok(&usecase.AnalyzeOutput{
-		IsGoalAchieved: latestEntry.IsPresent() &&
-			model.IsGoalAchieved(latestEntry.MustGet().PublishedAt, appctx.GetNowOr(ctx, time.Now()), in.Goal),
+		IsGoalAchieved: report.IsGoalAchieved,
 	})
 }

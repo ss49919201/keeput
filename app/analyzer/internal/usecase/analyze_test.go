@@ -9,13 +9,15 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAnalyze(t *testing.T) {
 	type args struct {
-		NewFetchLatest func(t *testing.T) fetcher.FetchLatest
+		NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
+		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
 
 		ctx   context.Context
 		input *usecase.AnalyzeInput
@@ -33,8 +35,22 @@ func TestAnalyze(t *testing.T) {
 						return mo.Ok(mo.Some(&model.Entry{
 							Title:       "Go 言語の slice について",
 							Body:        "Go 言語の slice は参照型です。気をつけましょう。",
-							PublishedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+							PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
 						}))
+					}
+				},
+				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
+					return func(report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Go 言語の slice について",
+								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
+
+						return nil
 					}
 				},
 				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
@@ -54,6 +70,16 @@ func TestAnalyze(t *testing.T) {
 						return mo.Ok(mo.None[*model.Entry]())
 					}
 				},
+				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
+					return func(report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: false,
+							LatestEntry:    mo.None[*model.Entry](),
+						}, report)
+
+						return nil
+					}
+				},
 				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
 				input: &usecase.AnalyzeInput{
 					Goal: model.GoalTypeRecentWeek,
@@ -68,6 +94,7 @@ func TestAnalyze(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewAnalyze(
 				tt.args.NewFetchLatest(t),
+				tt.args.NewPrintAnalysisReport(t),
 			)(
 				tt.args.ctx, tt.args.input,
 			)
