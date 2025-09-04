@@ -8,6 +8,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/hatena"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/zenn"
+	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/printer/stdout"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	usecaseport "github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	usecaseadapter "github.com/ss49919201/keeput/app/analyzer/internal/usecase"
@@ -32,6 +33,7 @@ func Analyze(ctx context.Context) error {
 
 	result := usecaseadapter.NewAnalyze(
 		fetcher,
+		stdout.PrintAnalysisReport,
 	)(ctx, &usecaseport.AnalyzeInput{})
 	if result.IsError() {
 		return result.Error()
