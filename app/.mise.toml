@@ -1,2 +1,5 @@
 [env]
 mise.file = ".env"
+
+[tools]
+go = "1.25.1"

@@ -1,6 +1,6 @@
 module github.com/ss49919201/keeput/app
 
-go 1.24.5
+go 1.25.1
 
 require (
 	github.com/mmcdole/gofeed v1.3.0
