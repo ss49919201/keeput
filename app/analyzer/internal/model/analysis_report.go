@@ -7,9 +7,9 @@ import (
 )
 
 type AnalysisReport struct {
-	IsGoalAchieved bool
+	IsGoalAchieved bool `json:"is_goal_achieved"`
 
-	LatestEntry mo.Option[*Entry]
+	LatestEntry mo.Option[*Entry] `json:"latest_entry"`
 }
 
 func Analyze(latestEntry mo.Option[*Entry], now time.Time, goalType GoalType) *AnalysisReport {
