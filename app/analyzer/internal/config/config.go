@@ -20,3 +20,11 @@ var feedURLHatena = sync.OnceValue(func() string {
 func FeedURLHatena() string {
 	return feedURLHatena()
 }
+
+var logLevel = sync.OnceValue(func() string {
+	return os.Getenv("LOG_LEVEL")
+})
+
+func LogLevel() string {
+	return logLevel()
+}
