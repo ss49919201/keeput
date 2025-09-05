@@ -2,7 +2,10 @@
 
 keeput はアウトプット活動を応援するアプリケーションです。
 
-# 実行方法
+# ローカル実行
+
+コマンド実行に必要な環境変数を `.env` に設定してください。
+雛形は `.env.example` にあります。
 
 analyzer は以下のコマンドで実行できます。
 
@@ -22,5 +25,5 @@ analyzer と notifier を組み合わせる場合は以下のコマンドで実�
 
 ```bash
 cd app
-FEED_URL_ZENN=${FEED_URL_ZENN} FEED_URL_HATENA=${FEED_URL_HATENA} SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL} go run analyzer/cmd/cli/main.go | (cd notifier && cabal run)
+go run analyzer/cmd/cli/main.go | (cd notifier && cabal run)
 ```
