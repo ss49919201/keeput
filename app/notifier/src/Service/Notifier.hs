@@ -56,7 +56,6 @@ sendReq reqBody = do
       let requestWithBody = setRequestBodyJSON reqBody request
       response <- httpLBS requestWithBody
       let status = getResponseStatusCode response
-      print status
       if status == 200
         then do
           print "success request"
