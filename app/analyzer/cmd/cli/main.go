@@ -4,20 +4,32 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/controller/cli"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
+	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 )
 
-func init() {
+func initSlog() {
 	slog.SetDefault(
 		slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				Level: slog.LevelWarn, // TODO: load from config
+				Level: lo.Switch[string, slog.Level](strings.ToUpper(config.LogLevel())).
+					Case("DEBUG", slog.LevelDebug).
+					Case("INFO", slog.LevelInfo).
+					Case("WARN", slog.LevelWarn).
+					Case("ERROR", slog.LevelError).
+					Default(slog.LevelWarn),
 			}),
 		),
 	)
+}
+
+func init() {
+	initSlog()
 }
 
 func main() {
