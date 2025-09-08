@@ -2,18 +2,31 @@ package internal
 
 import (
 	"context"
+	"log/slog"
+	"net/http"
+	"sync"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/mmcdole/gofeed"
 	"github.com/samber/lo"
 	"github.com/samber/mo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 )
 
-// NOTE: Fetch excludes records where published at is nil.
+var httpClient = sync.OnceValue(func() *http.Client {
+	// NOTE: retryablehttp.NewClient() は内部で cleanhttp.DefaultPooledClient() を使う。
+	// cleanhttp.DefaultPooledClient() が返す http.Client にはタイムアウトが設定されている。
+	c := retryablehttp.NewClient()
+	c.RetryMax = 3
+	c.Logger = slog.Default()
+	return c.StandardClient()
+})
+
+// NOTE: 公開日が存在しないエントリは除外する。
 func Fetch(ctx context.Context, feedURL string) mo.Result[[]*model.Entry] {
 	fp := gofeed.NewParser()
-
+	fp.Client = httpClient()
 	feed, err := fp.ParseURLWithContext(feedURL, ctx)
 	if err != nil {
 		return mo.Err[[]*model.Entry](err)
