@@ -43,7 +43,11 @@ func run(ctx context.Context) error {
 	if err != nil {
 		slog.Error("failed to construct otel trace provider", slog.String("error", err.Error()))
 	}
-	defer shutdownTraceProvider(ctx)
+	defer func() {
+		if err := shutdownTraceProvider(ctx); err != nil {
+			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
+		}
+	}()
 
 	ctx, span := otel.Tracer(traceName).Start(ctx, "CLI Entrypoint")
 	defer span.End()
@@ -60,5 +64,4 @@ func main() {
 		slog.Error("failed to run cli program", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	slog.Info("success command")
 }
