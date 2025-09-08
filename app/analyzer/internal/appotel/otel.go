@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdkTrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var shutdownTraceProvider func(context.Context) error
@@ -28,7 +29,7 @@ func InitTraceProvider(ctx context.Context) (func(context.Context) error, error)
 			return
 		}
 		tp := sdkTrace.NewTracerProvider(
-			sdkTrace.WithBatcher(exporter),
+			sdkTrace.WithSyncer(exporter),
 			sdkTrace.WithResource(resource),
 		)
 		otel.SetTracerProvider(tp)
@@ -36,4 +37,8 @@ func InitTraceProvider(ctx context.Context) (func(context.Context) error, error)
 		shutdownTraceProvider = tp.Shutdown
 	})
 	return shutdownTraceProvider, errInitOtelProvider
+}
+
+func RecordError(ctx context.Context, err error) {
+	trace.SpanFromContext(ctx).RecordError(err, trace.WithStackTrace(true))
 }

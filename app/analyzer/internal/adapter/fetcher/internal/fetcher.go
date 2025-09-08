@@ -28,7 +28,7 @@ var httpClient = sync.OnceValue(func() *http.Client {
 })
 
 // NOTE: 公開日が存在しないエントリは除外する。
-func Fetch(ctx context.Context, feedURL string) mo.Result[[]*model.Entry] {
+func Fetch(ctx context.Context, feedURL string) (result mo.Result[[]*model.Entry]) {
 	fp := gofeed.NewParser()
 	fp.Client = httpClient()
 	feed, err := fp.ParseURLWithContext(feedURL, ctx)

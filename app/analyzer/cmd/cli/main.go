@@ -38,7 +38,13 @@ func init() {
 	initSlog()
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context) (err error) {
+	defer func() {
+		if err != nil {
+			appotel.RecordError(ctx, err)
+		}
+	}()
+
 	shutdownTraceProvider, err := appotel.InitTraceProvider(ctx)
 	if err != nil {
 		slog.Error("failed to construct otel trace provider", slog.String("error", err.Error()))
