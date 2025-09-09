@@ -24,6 +24,9 @@ jobs:
         env:
           FEED_URL_ZENN: ${{ vars.FEED_URL_ZENN }}
           FEED_URL_HATENA: ${{ vars.FEED_URL_HATENA }}
+          OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME }}
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
         run: |
           ANALYZE_RESULT=$(go run analyzer/cmd/cli/main.go)
           echo "ANALYZE_RESULT=$ANALYZE_RESULT" >> "$GITHUB_OUTPUT"
