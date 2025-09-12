@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import { AnalysisReport, listAnalysisReports } from "@/lib/kv";
 
 export default async function Home() {
-  throw new Error("oops");
   const reports: { key: string; report: AnalysisReport }[] =
     await listAnalysisReports();
 
