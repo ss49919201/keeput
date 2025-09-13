@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { AnalysisReport, listAnalysisReports } from "@/lib/kv";
+import { AnalysisReport, listAnalysisReports } from "@/query/kv/anlysisReport";
 
 export default async function Home() {
   const reports: { key: string; report: AnalysisReport }[] =
