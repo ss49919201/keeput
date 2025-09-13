@@ -21,17 +21,17 @@ export default async function Home() {
             最新エントリ#公開日時
           </div>
           {reports.map((it) => {
-            const le = it.report.latest_entry;
+            const le = it.report.latestEntry;
             return (
               <div className="contents" key={it.key}>
                 <div className="px-3 py-2 border-t border-black/5">
-                  {String(it.report.is_goal_achieved)}
+                  {String(it.report.isGoalAchieved)}
                 </div>
                 <div className="px-3 py-2 border-t border-black/5">
-                  {le ? le.Title : "-"}
+                  {le ? le.title : "-"}
                 </div>
                 <div className="px-3 py-2 border-t border-black/5">
-                  {le ? le.PublishedAt.toISOString() : "-"}
+                  {le ? le.publishedAt.toISOString() : "-"}
                 </div>
               </div>
             );
