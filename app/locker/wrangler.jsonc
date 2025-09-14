@@ -1,0 +1,26 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "keeput-locker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-09-13",
+	"observability": {
+		"enabled": true
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "Locker",
+				"name": "LOCKER",
+			},
+		],
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			// NOTE: free プランは new_sqlite_classes が強制される
+			"new_sqlite_classes": [
+				"Locker"
+			]
+		}
+	]
+}
