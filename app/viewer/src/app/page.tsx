@@ -7,42 +7,35 @@ export default async function Home() {
     await listAnalysisReports();
 
   return (
-    <div className="font-sans min-h-screen p-8 sm:p-12">
-      <h1 className="text-2xl font-semibold mb-6">
-        アウトプットレポート Viewer
-      </h1>
-      <div className="rounded border border-black/10">
-        <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr_220px] lg:grid-cols-[minmax(140px,180px)_minmax(320px,1fr)_minmax(200px,260px)] gap-0 text-sm">
-          <div className="px-3 py-2 font-medium bg-black/[.03]">目標達成</div>
-          <div className="px-3 py-2 font-medium bg-black/[.03]">
-            最新エントリ#タイトル
-          </div>
-          <div className="px-3 py-2 font-medium bg-black/[.03]">
-            最新エントリ#公開日時
-          </div>
-          {reports.map((it) => {
-            const le = it.report.latestEntry;
-            return (
-              <div className="contents" key={it.key}>
-                <div className="px-3 py-2 border-t border-black/5">
-                  {String(it.report.isGoalAchieved)}
-                </div>
-                <div className="px-3 py-2 border-t border-black/5">
-                  {le ? le.title : "-"}
-                </div>
-                <div className="px-3 py-2 border-t border-black/5">
-                  {le ? le.publishedAt.toISOString() : "-"}
-                </div>
-              </div>
-            );
-          })}
+    <main className="min-h-screen p-6 sm:p-10 font-sans">
+      <h1 className="text-xl font-semibold mb-4">アウトプットレポート Viewer</h1>
+      {reports.length === 0 ? (
+        <p className="text-gray-600">データが存在しません</p>
+      ) : (
+        <div className="rounded-md border border-gray-200 overflow-hidden">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">目標達成</th>
+                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">最新エントリ#タイトル</th>
+                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">最新エントリ#公開日時</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((it) => {
+                const le = it.report.latestEntry;
+                return (
+                  <tr key={it.key} className="odd:bg-white even:bg-gray-50">
+                    <td className="border border-gray-200 p-2 sm:p-3">{String(it.report.isGoalAchieved)}</td>
+                    <td className="border border-gray-200 p-2 sm:p-3">{le ? le.title : "-"}</td>
+                    <td className="border border-gray-200 p-2 sm:p-3">{le ? le.publishedAt.toISOString() : "-"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-        {reports.length === 0 && (
-          <div className="px-3 py-4 text-sm text-black/70">
-            データが存在しません
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </main>
   );
 }
