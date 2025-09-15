@@ -46,3 +46,4 @@ app.post(
 );
 
 export default app;
+export { Locker };
