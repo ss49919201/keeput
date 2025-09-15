@@ -79,7 +79,7 @@ func acquire(ctx context.Context, lockID, baseURL string) mo.Result[bool] {
 	return mo.Ok(unmarshaledResp.Msg == "ok")
 }
 
-func NewReleae() locker.Release {
+func NewRelease() locker.Release {
 	return func(ctx context.Context, lockID string) error {
 		return release(ctx, lockID, config.LockerURLCloudflareWorker())
 	}

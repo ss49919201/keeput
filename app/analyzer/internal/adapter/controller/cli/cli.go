@@ -30,7 +30,7 @@ func Analyze(ctx context.Context) error {
 		fetcher,
 		stdout.PrintAnalysisReport,
 		cfworker.NewAcquire(),
-		cfworker.NewReleae(),
+		cfworker.NewRelease(),
 	)(ctx, &usecaseport.AnalyzeInput{})
 	if result.IsError() {
 		return result.Error()

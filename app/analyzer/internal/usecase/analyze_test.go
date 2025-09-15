@@ -20,7 +20,7 @@ func TestAnalyze(t *testing.T) {
 		NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
 		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
 		NewAcquireLock         func(t *testing.T) locker.Acquire
-		NewReleaeLock          func(t *testing.T) locker.Release
+		NewReleaseLock         func(t *testing.T) locker.Release
 
 		ctx   context.Context
 		input *usecase.AnalyzeInput
@@ -62,7 +62,7 @@ func TestAnalyze(t *testing.T) {
 						return mo.Ok(true)
 					}
 				},
-				NewReleaeLock: func(t *testing.T) locker.Release {
+				NewReleaseLock: func(t *testing.T) locker.Release {
 					return func(ctx context.Context, lockID string) error {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
 						return nil
@@ -101,7 +101,7 @@ func TestAnalyze(t *testing.T) {
 						return mo.Ok(true)
 					}
 				},
-				NewReleaeLock: func(t *testing.T) locker.Release {
+				NewReleaseLock: func(t *testing.T) locker.Release {
 					return func(ctx context.Context, lockID string) error {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
 						return nil
@@ -123,7 +123,7 @@ func TestAnalyze(t *testing.T) {
 				tt.args.NewFetchLatest(t),
 				tt.args.NewPrintAnalysisReport(t),
 				tt.args.NewAcquireLock(t),
-				tt.args.NewReleaeLock(t),
+				tt.args.NewReleaseLock(t),
 			)(
 				tt.args.ctx, tt.args.input,
 			)
