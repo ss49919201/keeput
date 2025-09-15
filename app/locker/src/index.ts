@@ -1,5 +1,6 @@
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
+import { logger } from "hono/logger";
 import { object, string } from "valibot";
 import { Locker } from "./locker";
 
@@ -8,6 +9,8 @@ type Bindings = {
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+app.use(logger());
 
 app.post(
   "/acquire",
