@@ -8,7 +8,9 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen p-6 sm:p-10 font-sans">
-      <h1 className="text-xl font-semibold mb-4">アウトプットレポート Viewer</h1>
+      <h1 className="text-xl font-semibold mb-4">
+        アウトプットレポート Viewer
+      </h1>
       {reports.length === 0 ? (
         <p className="text-gray-600">データが存在しません</p>
       ) : (
@@ -16,9 +18,15 @@ export default async function Home() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">目標達成</th>
-                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">最新エントリ#タイトル</th>
-                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">最新エントリ#公開日時</th>
+                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">
+                  目標達成
+                </th>
+                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">
+                  最新エントリ#タイトル
+                </th>
+                <th className="text-left bg-gray-50 border border-gray-200 p-2 sm:p-3">
+                  最新エントリ#公開日時
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -26,9 +34,15 @@ export default async function Home() {
                 const le = it.report.latestEntry;
                 return (
                   <tr key={it.key} className="odd:bg-white even:bg-gray-50">
-                    <td className="border border-gray-200 p-2 sm:p-3">{String(it.report.isGoalAchieved)}</td>
-                    <td className="border border-gray-200 p-2 sm:p-3">{le ? le.title : "-"}</td>
-                    <td className="border border-gray-200 p-2 sm:p-3">{le ? le.publishedAt.toISOString() : "-"}</td>
+                    <td className="border border-gray-200 p-2 sm:p-3">
+                      {it.report.isGoalAchieved ? "⭕️" : "❌"}
+                    </td>
+                    <td className="border border-gray-200 p-2 sm:p-3">
+                      {le ? le.title : "-"}
+                    </td>
+                    <td className="border border-gray-200 p-2 sm:p-3">
+                      {le ? le.publishedAt.toISOString() : "-"}
+                    </td>
                   </tr>
                 );
               })}
