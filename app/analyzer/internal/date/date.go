@@ -13,3 +13,9 @@ func EndOfDay(t time.Time) time.Time {
 func AddDays(t time.Time, days int) time.Time {
 	return t.AddDate(0, 0, days)
 }
+
+var jst = time.FixedZone("Asia/Tokyo", 9*60*60)
+
+func LocationJST() time.Location {
+	return *jst
+}

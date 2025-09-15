@@ -28,3 +28,11 @@ var logLevel = sync.OnceValue(func() string {
 func LogLevel() string {
 	return logLevel()
 }
+
+var lockerURLCloudflareWorker = sync.OnceValue(func() string {
+	return os.Getenv("LOCKER_URL_CLOUDFLARE_WORKER")
+})
+
+func LockerURLCloudflareWorker() string {
+	return lockerURLCloudflareWorker()
+}

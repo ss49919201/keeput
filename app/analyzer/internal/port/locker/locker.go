@@ -1,6 +1,10 @@
 package locker
 
-import "github.com/samber/mo"
+import (
+	"context"
 
-type Acquire = func(lockID string) mo.Result[bool]
-type Release = func(lockID string) error
+	"github.com/samber/mo"
+)
+
+type Acquire = func(ctx context.Context, lockID string) mo.Result[bool]
+type Release = func(ctx context.Context, lockID string) error
