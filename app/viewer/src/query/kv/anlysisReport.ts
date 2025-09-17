@@ -24,19 +24,32 @@ const dateFromRFC3339 = pipe(
   transform((s) => new Date(s))
 );
 
-const entrySchema = object({
+// Incoming shape stored in KV (follows Go JSON tags / Title-case & snake_case)
+const entryInSchema = object({
   Title: string(),
   Body: string(),
   PublishedAt: dateFromRFC3339,
 });
 
-const AnalysisReportSchema = object({
-  is_goal_achieved: boolean(),
-  latest_entry: union([entrySchema, vNull()]),
-});
+// Exposed shape (camelCase)
+const analysisReportSchema = pipe(
+  object({
+    is_goal_achieved: boolean(),
+    latest_entry: union([entryInSchema, vNull()]),
+  }),
+  transform((r) => ({
+    isGoalAchieved: r.is_goal_achieved,
+    latestEntry: r.latest_entry
+      ? {
+          title: r.latest_entry.Title,
+          body: r.latest_entry.Body,
+          publishedAt: r.latest_entry.PublishedAt,
+        }
+      : null,
+  }))
+);
 
-export type Entry = InferOutput<typeof entrySchema>;
-export type AnalysisReport = InferOutput<typeof AnalysisReportSchema>;
+export type AnalysisReport = InferOutput<typeof analysisReportSchema>;
 
 export type ParsedReport = {
   key: string;
@@ -46,14 +59,13 @@ export type ParsedReport = {
 export async function listAnalysisReports(): Promise<ParsedReport[]> {
   const kv = (await getCloudflareContext({ async: true })).env.KV;
   const prefix = "analysis_report";
-  if (!kv) throw new Error("KV binding is not available");
   const res = await kv.list({ prefix });
   const items: ParsedReport[] = [];
   for (const k of res.keys) {
     const raw = await kv.get(k.name);
     if (!raw) continue;
     try {
-      const parsed = parse(AnalysisReportSchema, JSON.parse(raw));
+      const parsed = parse(analysisReportSchema, JSON.parse(raw));
       items.push({ key: k.name.replace(prefix, ""), report: parsed });
     } catch {
       // ignore: invalid schema or JSON
@@ -61,3 +73,4 @@ export async function listAnalysisReports(): Promise<ParsedReport[]> {
   }
   return items;
 }
+

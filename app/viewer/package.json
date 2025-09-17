@@ -10,7 +10,7 @@
 		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
-		"seed:kv:binding": "wrangler kv key put --binding=KV dummy:user_001 '{\"id\":1,\"name\":\"Alice\",\"role\":\"admin\"}' && wrangler kv key put --binding=KV dummy:user_002 '{\"id\":2,\"name\":\"Bob\",\"role\":\"editor\"}' && wrangler kv key put --binding=KV dummy:user_003 '{\"id\":3,\"name\":\"Carol\",\"role\":\"viewer\"}'"
+		"seed:kv:binding": "wrangler kv key put --binding=KV analysis_report:sample_001 '{\"is_goal_achieved\":true,\"latest_entry\":{\"Title\":\"初回の投稿\",\"Body\":\"はじめての投稿本文です\",\"PublishedAt\":\"2024-09-01T10:00:00Z\"}}' && wrangler kv key put --binding=KV analysis_report:sample_002 '{\"is_goal_achieved\":false,\"latest_entry\":{\"Title\":\"二回目の投稿\",\"Body\":\"2回目の投稿本文です\",\"PublishedAt\":\"2024-09-08T15:30:00Z\"}}' && wrangler kv key put --binding=KV analysis_report:sample_003 '{\"is_goal_achieved\":false,\"latest_entry\":null}'"
 	},
 	"dependencies": {
 		"@opennextjs/cloudflare": "^1.3.0",
