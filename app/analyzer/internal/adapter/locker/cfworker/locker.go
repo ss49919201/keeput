@@ -119,7 +119,7 @@ func release(ctx context.Context, lockID, baseURL string) error {
 	if err != nil {
 		return err
 	}
-	var unmarshaledResp *acquireResponse
+	var unmarshaledResp *releaseResponse
 	if err := json.Unmarshal(respBodyBytes, &unmarshaledResp); err != nil {
 		return err
 	}
