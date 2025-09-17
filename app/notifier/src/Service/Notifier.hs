@@ -31,6 +31,9 @@ loadValueFromEnv key = do
 loadSlackWebhookUrl :: IO (Maybe String)
 loadSlackWebhookUrl = loadValueFromEnv "SLACK_WEBHOOK_URL"
 
+loadDiscordWebhookUrl :: IO (Maybe String)
+loadDiscordWebhookUrl = loadValueFromEnv "DISCORD_WEBHOOK_URL"
+
 notificationCondition :: IO (Maybe String)
 notificationCondition = do
   loadValueFromEnv "NOTIFICATION_CONDITION"
