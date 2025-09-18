@@ -50,10 +50,10 @@ parseNotificationCondition _ = Always
 
 sendReq :: ReqBody -> IO (Either String ())
 sendReq reqBody = do
-  maybeUrl <- loadSlackWebhookUrl
+  maybeUrl <- loadDiscordWebhookUrl
   case maybeUrl of
     Nothing -> do
-      return $ Left "slack webhook url is not set or empty"
+      return $ Left "discord webhook url is not set or empty"
     Just url -> do
       request <- parseRequest $ "POST " ++ url
       let requestWithBody = setRequestBodyJSON reqBody request
