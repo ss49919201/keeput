@@ -9,7 +9,7 @@ import GHC.Generics (Generic)
 import Network.HTTP.Simple
 import System.Environment (lookupEnv)
 
-newtype ReqBody = ReqBody {text :: String}
+newtype ReqBody = ReqBody {content :: String}
   deriving (Generic)
 
 instance ToJSON ReqBody
@@ -18,8 +18,14 @@ getIsGoalAchieved :: Object -> Maybe Bool
 getIsGoalAchieved = parseMaybe $ \obj -> obj .: "is_goal_achieved"
 
 reqBody :: Bool -> ReqBody
-reqBody True = ReqBody "目標達成です🎊よく頑張りました！"
-reqBody False = ReqBody "目標未達です😢これから頑張りましょう！"
+reqBody True =
+  ReqBody
+    { content = "目標達成です🎊よく頑張りました！"
+    }
+reqBody False =
+  ReqBody
+    { content = "目標未達です😢これから頑張りましょう！"
+    }
 
 loadValueFromEnv :: String -> IO (Maybe String)
 loadValueFromEnv key = do
