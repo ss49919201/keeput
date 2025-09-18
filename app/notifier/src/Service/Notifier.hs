@@ -9,7 +9,7 @@ import GHC.Generics (Generic)
 import Network.HTTP.Simple
 import System.Environment (lookupEnv)
 
-newtype ReqBody = ReqBody {text :: String}
+newtype ReqBody = ReqBody {content :: String}
   deriving (Generic)
 
 instance ToJSON ReqBody
@@ -18,8 +18,14 @@ getIsGoalAchieved :: Object -> Maybe Bool
 getIsGoalAchieved = parseMaybe $ \obj -> obj .: "is_goal_achieved"
 
 reqBody :: Bool -> ReqBody
-reqBody True = ReqBody "目標達成です🎊よく頑張りました！"
-reqBody False = ReqBody "目標未達です😢これから頑張りましょう！"
+reqBody True =
+  ReqBody
+    { content = "目標達成です🎊よく頑張りました！"
+    }
+reqBody False =
+  ReqBody
+    { content = "目標未達です😢これから頑張りましょう！"
+    }
 
 loadValueFromEnv :: String -> IO (Maybe String)
 loadValueFromEnv key = do
@@ -30,6 +36,9 @@ loadValueFromEnv key = do
 
 loadSlackWebhookUrl :: IO (Maybe String)
 loadSlackWebhookUrl = loadValueFromEnv "SLACK_WEBHOOK_URL"
+
+loadDiscordWebhookUrl :: IO (Maybe String)
+loadDiscordWebhookUrl = loadValueFromEnv "DISCORD_WEBHOOK_URL"
 
 notificationCondition :: IO (Maybe String)
 notificationCondition = do
@@ -47,10 +56,10 @@ parseNotificationCondition _ = Always
 
 sendReq :: ReqBody -> IO (Either String ())
 sendReq reqBody = do
-  maybeUrl <- loadSlackWebhookUrl
+  maybeUrl <- loadDiscordWebhookUrl
   case maybeUrl of
     Nothing -> do
-      return $ Left "slack webhook url is not set or empty"
+      return $ Left "discord webhook url is not set or empty"
     Just url -> do
       request <- parseRequest $ "POST " ++ url
       let requestWithBody = setRequestBodyJSON reqBody request
