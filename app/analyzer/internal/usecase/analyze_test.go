@@ -10,6 +10,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +20,7 @@ func TestAnalyze(t *testing.T) {
 	type args struct {
 		NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
 		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
+		NewNotify              func(t *testing.T) notifier.NotifyAnalysisReport
 		NewAcquireLock         func(t *testing.T) locker.Acquire
 		NewReleaseLock         func(t *testing.T) locker.Release
 
@@ -53,6 +55,12 @@ func TestAnalyze(t *testing.T) {
 							}),
 						}, report)
 
+						return nil
+					}
+				},
+				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
+					return func(ctx context.Context, isGoalAchieved bool) error {
+						assert.True(t, isGoalAchieved)
 						return nil
 					}
 				},
@@ -95,6 +103,12 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
+				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
+					return func(ctx context.Context, isGoalAchieved bool) error {
+						assert.False(t, isGoalAchieved)
+						return nil
+					}
+				},
 				NewAcquireLock: func(t *testing.T) locker.Acquire {
 					return func(ctx context.Context, lockID string) mo.Result[bool] {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
@@ -122,6 +136,7 @@ func TestAnalyze(t *testing.T) {
 			got := NewAnalyze(
 				tt.args.NewFetchLatest(t),
 				tt.args.NewPrintAnalysisReport(t),
+				tt.args.NewNotify(t),
 				tt.args.NewAcquireLock(t),
 				tt.args.NewReleaseLock(t),
 			)(

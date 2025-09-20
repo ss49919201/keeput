@@ -7,6 +7,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/hatena"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/zenn"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/locker/cfworker"
+	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/notifier/discord"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/printer/stdout"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	usecaseport "github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
@@ -29,6 +30,7 @@ func Analyze(ctx context.Context) error {
 	result := usecaseadapter.NewAnalyze(
 		fetcher,
 		stdout.PrintAnalysisReport,
+		discord.NewNotifyAnalysisReport(),
 		cfworker.NewAcquire(),
 		cfworker.NewRelease(),
 	)(ctx, &usecaseport.AnalyzeInput{})

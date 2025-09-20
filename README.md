@@ -21,17 +21,3 @@ analyzer は以下のコマンドで実行できます。
 cd app
 go run analyzer/cmd/cli/main.go
 ```
-
-notifier は以下のコマンドで実行できます。
-
-```bash
-cd app/notifier
-cabal run
-```
-
-analyzer と notifier を組み合わせる場合は以下のコマンドで実行できます。
-
-```bash
-cd app
-go run analyzer/cmd/cli/main.go | (cd notifier && cabal run)
-```

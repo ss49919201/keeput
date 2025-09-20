@@ -24,15 +24,10 @@ jobs:
         env:
           FEED_URL_ZENN: ${{ vars.FEED_URL_ZENN }}
           FEED_URL_HATENA: ${{ vars.FEED_URL_HATENA }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME }}
           OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
           OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
-        run: |
-          ANALYZE_RESULT=$(go run analyzer/cmd/cli/main.go)
-          echo "ANALYZE_RESULT=$ANALYZE_RESULT" >> "$GITHUB_OUTPUT"
+        run: go run analyzer/cmd/cli/main.go
         working-directory: app
-      - id: notify
-        env: 
-          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
-        run: echo '${{ steps.analyze.outputs.ANALYZE_RESULT }}' | cabal run
-        working-directory: app/notifier
+
