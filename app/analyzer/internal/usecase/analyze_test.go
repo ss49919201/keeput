@@ -10,6 +10,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,7 @@ func TestAnalyze(t *testing.T) {
 		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
 		NewAcquireLock         func(t *testing.T) locker.Acquire
 		NewReleaseLock         func(t *testing.T) locker.Release
+		NewNotify              func(t *testing.T) notifier.Notify
 
 		ctx   context.Context
 		input *usecase.AnalyzeInput
@@ -68,6 +70,12 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
+				NewNotify: func(t *testing.T) notifier.Notify {
+					return func(req *notifier.NotificationRequest) mo.Result[struct{}] {
+						assert.Equal(t, true, req.IsGoalAchieved)
+						return mo.Ok(struct{}{})
+					}
+				},
 				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
 				input: &usecase.AnalyzeInput{
 					Goal: model.GoalTypeRecentWeek,
@@ -107,6 +115,12 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
+				NewNotify: func(t *testing.T) notifier.Notify {
+					return func(req *notifier.NotificationRequest) mo.Result[struct{}] {
+						assert.Equal(t, false, req.IsGoalAchieved)
+						return mo.Ok(struct{}{})
+					}
+				},
 				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
 				input: &usecase.AnalyzeInput{
 					Goal: model.GoalTypeRecentWeek,
@@ -124,6 +138,7 @@ func TestAnalyze(t *testing.T) {
 				tt.args.NewPrintAnalysisReport(t),
 				tt.args.NewAcquireLock(t),
 				tt.args.NewReleaseLock(t),
+				tt.args.NewNotify(t),
 			)(
 				tt.args.ctx, tt.args.input,
 			)

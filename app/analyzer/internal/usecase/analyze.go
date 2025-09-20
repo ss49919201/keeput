@@ -12,19 +12,20 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 )
 
-func NewAnalyze(fetchAllByDate fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release) usecase.Analyze {
+func NewAnalyze(fetchAllByDate fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, notify notifier.Notify) usecase.Analyze {
 	return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
-		return analyze(ctx, in, fetchAllByDate, printAnalysisReport, acquireLock, releaseLock)
+		return analyze(ctx, in, fetchAllByDate, printAnalysisReport, acquireLock, releaseLock, notify)
 	}
 }
 
 const lockIDPrefixAnalyze = "usecase:analyze"
 
-func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release) mo.Result[*usecase.AnalyzeOutput] {
+func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, notify notifier.Notify) mo.Result[*usecase.AnalyzeOutput] {
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	acquireLockResult := acquireLock(ctx, lockID)
 	if acquireLockResult.IsError() {
@@ -48,6 +49,13 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 
 	if err := printAnalysisReport(report); err != nil {
 		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
+	}
+
+	notifyResult := notify(&notifier.NotificationRequest{
+		IsGoalAchieved: report.IsGoalAchieved,
+	})
+	if notifyResult.IsError() {
+		slog.Warn("failed to send notification", slog.String("error", notifyResult.Error().Error()))
 	}
 
 	return mo.Ok(&usecase.AnalyzeOutput{
