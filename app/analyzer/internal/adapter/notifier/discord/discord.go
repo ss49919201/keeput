@@ -6,11 +6,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"sync"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
+
+var httpClient = sync.OnceValue(func() *http.Client {
+	// NOTE: retryablehttp.NewClient() は内部で cleanhttp.DefaultPooledClient() を使う。
+	// cleanhttp.DefaultPooledClient() が返す http.Client にはタイムアウトが設定されている。
+	client := retryablehttp.NewClient()
+	client.RetryMax = 3
+	client.Logger = slog.Default()
+
+	standAloneClient := client.StandardClient()
+	standAloneClient.Transport = otelhttp.NewTransport(standAloneClient.Transport)
+	return standAloneClient
+})
 
 type reqBody struct {
 	Content string `json:"content"`
@@ -18,11 +34,11 @@ type reqBody struct {
 
 func NewNotifyAnalysisReport() notifier.NotifyAnalysisReport {
 	return func(ctx context.Context, isGoalAchieved bool) error {
-		return notify(ctx, config.DiscordWebhookURL(), isGoalAchieved)
+		return notifyAnalysisReport(ctx, config.DiscordWebhookURL(), isGoalAchieved)
 	}
 }
 
-func notify(ctx context.Context, webhookURL string, isGoalAchieved bool) error {
+func notifyAnalysisReport(ctx context.Context, webhookURL string, isGoalAchieved bool) error {
 	body := reqBody{Content: message(isGoalAchieved)}
 	payload, err := json.Marshal(body)
 	if err != nil {
@@ -35,7 +51,7 @@ func notify(ctx context.Context, webhookURL string, isGoalAchieved bool) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient().Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to request: %w", err)
 	}
