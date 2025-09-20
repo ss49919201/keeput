@@ -16,11 +16,12 @@ import (
 )
 
 func TestAnalyze(t *testing.T) {
-	type args struct {
-		NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
-		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
-		NewAcquireLock         func(t *testing.T) locker.Acquire
-		NewReleaseLock         func(t *testing.T) locker.Release
+type args struct {
+        NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
+        NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
+        NewNotify              func(t *testing.T) func(ctx context.Context, report *model.AnalysisReport) error
+        NewAcquireLock         func(t *testing.T) locker.Acquire
+        NewReleaseLock         func(t *testing.T) locker.Release
 
 		ctx   context.Context
 		input *usecase.AnalyzeInput
@@ -30,10 +31,10 @@ func TestAnalyze(t *testing.T) {
 		args args
 		want mo.Result[*usecase.AnalyzeOutput]
 	}{
-		{
-			"return results of achieving goal",
-			args{
-				NewFetchLatest: func(t *testing.T) fetcher.FetchLatest {
+        {
+            "return results of achieving goal",
+            args{
+                NewFetchLatest: func(t *testing.T) fetcher.FetchLatest {
 					return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
 						return mo.Ok(mo.Some(&model.Entry{
 							Title:       "Go 言語の slice について",
@@ -55,8 +56,11 @@ func TestAnalyze(t *testing.T) {
 
 						return nil
 					}
-				},
-				NewAcquireLock: func(t *testing.T) locker.Acquire {
+                },
+                NewNotify: func(t *testing.T) func(ctx context.Context, report *model.AnalysisReport) error {
+                    return func(ctx context.Context, report *model.AnalysisReport) error { return nil }
+                },
+                NewAcquireLock: func(t *testing.T) locker.Acquire {
 					return func(ctx context.Context, lockID string) mo.Result[bool] {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
 						return mo.Ok(true)
@@ -77,10 +81,10 @@ func TestAnalyze(t *testing.T) {
 				IsGoalAchieved: true,
 			}),
 		},
-		{
-			"return results of not achieving goal",
-			args{
-				NewFetchLatest: func(t *testing.T) fetcher.FetchLatest {
+        {
+            "return results of not achieving goal",
+            args{
+                NewFetchLatest: func(t *testing.T) fetcher.FetchLatest {
 					return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
 						return mo.Ok(mo.None[*model.Entry]())
 					}
@@ -94,8 +98,11 @@ func TestAnalyze(t *testing.T) {
 
 						return nil
 					}
-				},
-				NewAcquireLock: func(t *testing.T) locker.Acquire {
+                },
+                NewNotify: func(t *testing.T) func(ctx context.Context, report *model.AnalysisReport) error {
+                    return func(ctx context.Context, report *model.AnalysisReport) error { return nil }
+                },
+                NewAcquireLock: func(t *testing.T) locker.Acquire {
 					return func(ctx context.Context, lockID string) mo.Result[bool] {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
 						return mo.Ok(true)
@@ -118,15 +125,16 @@ func TestAnalyze(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := NewAnalyze(
-				tt.args.NewFetchLatest(t),
-				tt.args.NewPrintAnalysisReport(t),
-				tt.args.NewAcquireLock(t),
-				tt.args.NewReleaseLock(t),
-			)(
-				tt.args.ctx, tt.args.input,
-			)
+        t.Run(tt.name, func(t *testing.T) {
+            got := NewAnalyze(
+                tt.args.NewFetchLatest(t),
+                tt.args.NewPrintAnalysisReport(t),
+                tt.args.NewNotify(t),
+                tt.args.NewAcquireLock(t),
+                tt.args.NewReleaseLock(t),
+            )(
+                tt.args.ctx, tt.args.input,
+            )
 			assert.Equal(t, tt.want, got)
 		})
 	}
