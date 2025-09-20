@@ -1,30 +1,31 @@
 package usecase
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"log/slog"
-	"time"
+    "context"
+    "errors"
+    "fmt"
+    "log/slog"
+    "time"
 
-	"github.com/samber/mo"
-	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
-	"github.com/ss49919201/keeput/app/analyzer/internal/model"
-	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
-	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
-	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
-	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
+    "github.com/samber/mo"
+    "github.com/ss49919201/keeput/app/analyzer/internal/appctx"
+    "github.com/ss49919201/keeput/app/analyzer/internal/model"
+    "github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
+    "github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
+    "github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
+    "github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
+    "github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 )
 
-func NewAnalyze(fetchAllByDate fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release) usecase.Analyze {
-	return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
-		return analyze(ctx, in, fetchAllByDate, printAnalysisReport, acquireLock, releaseLock)
-	}
+func NewAnalyze(fetchAllByDate fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notify notifier.Notify, acquireLock locker.Acquire, releaseLock locker.Release) usecase.Analyze {
+    return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
+        return analyze(ctx, in, fetchAllByDate, printAnalysisReport, notify, acquireLock, releaseLock)
+    }
 }
 
 const lockIDPrefixAnalyze = "usecase:analyze"
 
-func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release) mo.Result[*usecase.AnalyzeOutput] {
+func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notify notifier.Notify, acquireLock locker.Acquire, releaseLock locker.Release) mo.Result[*usecase.AnalyzeOutput] {
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	acquireLockResult := acquireLock(ctx, lockID)
 	if acquireLockResult.IsError() {
@@ -44,13 +45,18 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to fetch latest entry: %w", err))
 	}
 
-	report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
+    report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
 
-	if err := printAnalysisReport(report); err != nil {
-		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
-	}
+    if err := printAnalysisReport(report); err != nil {
+        return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
+    }
 
-	return mo.Ok(&usecase.AnalyzeOutput{
-		IsGoalAchieved: report.IsGoalAchieved,
-	})
+    // Notify result. Keep non-fatal: log warning on failure but do not interrupt usecase.
+    if err := notify(ctx, report); err != nil {
+        slog.Warn("failed to notify analysis result", slog.String("error", err.Error()))
+    }
+
+    return mo.Ok(&usecase.AnalyzeOutput{
+        IsGoalAchieved: report.IsGoalAchieved,
+    })
 }
