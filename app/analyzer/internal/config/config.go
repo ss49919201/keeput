@@ -34,5 +34,13 @@ var lockerURLCloudflareWorker = sync.OnceValue(func() string {
 })
 
 func LockerURLCloudflareWorker() string {
-	return lockerURLCloudflareWorker()
+    return lockerURLCloudflareWorker()
+}
+
+var discordWebhookURL = sync.OnceValue(func() string {
+    return os.Getenv("DISCORD_WEBHOOK_URL")
+})
+
+func DiscordWebhookURL() string {
+    return discordWebhookURL()
 }
