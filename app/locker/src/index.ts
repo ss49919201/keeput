@@ -6,6 +6,7 @@ import { Locker } from "./locker";
 
 type Bindings = {
   LOCKER: DurableObjectNamespace<Locker>;
+  API_KEY: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
