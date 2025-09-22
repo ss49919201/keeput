@@ -52,7 +52,6 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 	}
 
 	if err := notify(ctx, report.IsGoalAchieved); err != nil {
-		// Keep behavior close to the Haskell notifier which logs errors but does not abort.
 		slog.Warn("failed to notify", "error", err)
 	}
 
