@@ -33,7 +33,7 @@ var httpClient = sync.OnceValue(func() *http.Client {
 
 func NewAcquire() locker.Acquire {
 	return func(ctx context.Context, lockID string) mo.Result[bool] {
-		return acquire(ctx, lockID, config.LockerURLCloudflareWorker())
+		return acquire(ctx, lockID)
 	}
 }
 
@@ -42,7 +42,7 @@ type acquireResponse struct {
 }
 
 // TODO: release との共通部分を抽象化して関数にする。
-func acquire(ctx context.Context, lockID, baseURL string) mo.Result[bool] {
+func acquire(ctx context.Context, lockID string) mo.Result[bool] {
 	reqBodyMap := map[string]string{
 		"lockId": lockID,
 	}
@@ -50,7 +50,7 @@ func acquire(ctx context.Context, lockID, baseURL string) mo.Result[bool] {
 	if err != nil {
 		return mo.Err[bool](err)
 	}
-	url, err := url.JoinPath(baseURL, "/acquire")
+	url, err := url.JoinPath(config.LockerURLCloudflareWorker(), "/acquire")
 	if err != nil {
 		return mo.Err[bool](err)
 	}
@@ -59,6 +59,7 @@ func acquire(ctx context.Context, lockID, baseURL string) mo.Result[bool] {
 		return mo.Err[bool](err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-LOCKER-API-KEY", config.LockerAPIKeyCloudflareWorker())
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return mo.Err[bool](err)
@@ -81,7 +82,7 @@ func acquire(ctx context.Context, lockID, baseURL string) mo.Result[bool] {
 
 func NewRelease() locker.Release {
 	return func(ctx context.Context, lockID string) error {
-		return release(ctx, lockID, config.LockerURLCloudflareWorker())
+		return release(ctx, lockID)
 	}
 }
 
@@ -89,7 +90,7 @@ type releaseResponse struct {
 	Msg string `json:"msg"`
 }
 
-func release(ctx context.Context, lockID, baseURL string) error {
+func release(ctx context.Context, lockID string) error {
 	reqBodyMap := map[string]string{
 		"lockId": lockID,
 	}
@@ -97,7 +98,7 @@ func release(ctx context.Context, lockID, baseURL string) error {
 	if err != nil {
 		return err
 	}
-	url, err := url.JoinPath(baseURL, "/release")
+	url, err := url.JoinPath(config.LockerURLCloudflareWorker(), "/release")
 	if err != nil {
 		return err
 	}
@@ -106,6 +107,7 @@ func release(ctx context.Context, lockID, baseURL string) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-LOCKER-API-KEY", config.LockerAPIKeyCloudflareWorker())
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return err

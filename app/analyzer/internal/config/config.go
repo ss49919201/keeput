@@ -2,8 +2,17 @@ package config
 
 import (
 	"os"
+	"strings"
 	"sync"
 )
+
+var env = sync.OnceValue(func() string {
+	return os.Getenv("ENV")
+})
+
+func IsLocal() bool {
+	return strings.ToLower(env()) == "local"
+}
 
 var feedURLZenn = sync.OnceValue(func() string {
 	return os.Getenv("FEED_URL_ZENN")
@@ -34,13 +43,21 @@ var lockerURLCloudflareWorker = sync.OnceValue(func() string {
 })
 
 func LockerURLCloudflareWorker() string {
-    return lockerURLCloudflareWorker()
+	return lockerURLCloudflareWorker()
+}
+
+var lockerAPIKeyCloudflareWorker = sync.OnceValue(func() string {
+	return os.Getenv("LOCKER_API_KEY_CLOUDFLARE_WORKER")
+})
+
+func LockerAPIKeyCloudflareWorker() string {
+	return lockerAPIKeyCloudflareWorker()
 }
 
 var discordWebhookURL = sync.OnceValue(func() string {
-    return os.Getenv("DISCORD_WEBHOOK_URL")
+	return os.Getenv("DISCORD_WEBHOOK_URL")
 })
 
 func DiscordWebhookURL() string {
-    return discordWebhookURL()
+	return discordWebhookURL()
 }

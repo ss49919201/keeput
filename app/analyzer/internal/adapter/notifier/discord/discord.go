@@ -57,7 +57,7 @@ func notifyAnalysisReport(ctx context.Context, webhookURL string, isGoalAchieved
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNoContent {
 		b, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed to request with status code: %d; body: %s", resp.StatusCode, string(b))
 	}
