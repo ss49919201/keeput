@@ -28,6 +28,8 @@ jobs:
           OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME }}
           OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
           OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+          LOCKER_URL_CLOUDFLARE_WORKER: ${{ secrets.LOCKER_URL_CLOUDFLARE_WORKER }}
+          LOCKER_API_KEY_CLOUDFLARE_WORKER: ${{ secrets.LOCKER_API_KEY_CLOUDFLARE_WORKER }}
         run: go run analyzer/cmd/cli/main.go
         working-directory: app
 
