@@ -19,5 +19,5 @@ analyzer は以下のコマンドで実行できます。
 
 ```bash
 cd app
-go run analyzer/cmd/cli/main.go
+ENV=local go run analyzer/cmd/cli/main.go
 ```

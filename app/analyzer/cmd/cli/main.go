@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/samber/lo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/controller/cli"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
@@ -34,8 +35,19 @@ func initSlog() {
 	)
 }
 
+func initEnvForLocal() error {
+	if !config.IsLocal() {
+		return nil
+	}
+	return godotenv.Load()
+}
+
 func init() {
 	initSlog()
+	if err := initEnvForLocal(); err != nil {
+		slog.Error("failed to init env for local", slog.String("err", err.Error()))
+		os.Exit(1)
+	}
 }
 
 func run(ctx context.Context) (err error) {
