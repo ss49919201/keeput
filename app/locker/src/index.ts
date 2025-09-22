@@ -1,5 +1,6 @@
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { object, string } from "valibot";
 import { Locker } from "./locker";
@@ -12,6 +13,23 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }>();
 
 app.use(logger());
+
+app.use("*", async (c, next) => {
+  if (c.env.API_KEY === "") {
+    console.error("env api key is empty");
+    throw new HTTPException(500);
+  }
+
+  const apiKey = c.req.header("X-LOCKER-API-KEY");
+  if (apiKey !== c.env.API_KEY) {
+    throw new HTTPException(403, { message: "Forbidden" });
+  }
+  await next();
+});
+
+app.get("health", (c) => {
+  return c.json("ok");
+});
 
 app.post(
   "/acquire",
