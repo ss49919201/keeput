@@ -37,16 +37,20 @@ func NewAcquire() locker.Acquire {
 	}
 }
 
+type acquireRequest struct {
+	LockID string `json:"lockId"`
+}
+
 type acquireResponse struct {
 	Msg string `json:"msg"`
 }
 
 // TODO: release との共通部分を抽象化して関数にする。
 func acquire(ctx context.Context, lockID string) mo.Result[bool] {
-	reqBodyMap := map[string]string{
-		"lockId": lockID,
+	reqBody := acquireRequest{
+		LockID: lockID,
 	}
-	reqBodyBytes, err := json.Marshal(reqBodyMap)
+	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return mo.Err[bool](err)
 	}
