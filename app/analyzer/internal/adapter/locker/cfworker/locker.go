@@ -86,15 +86,19 @@ func NewRelease() locker.Release {
 	}
 }
 
+type releaseRequest struct {
+	LockID string `json:"lockId"`
+}
+
 type releaseResponse struct {
 	Msg string `json:"msg"`
 }
 
 func release(ctx context.Context, lockID string) error {
-	reqBodyMap := map[string]string{
-		"lockId": lockID,
+	reqBody := releaseRequest{
+		LockID: lockID,
 	}
-	reqBodyBytes, err := json.Marshal(reqBodyMap)
+	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return err
 	}
