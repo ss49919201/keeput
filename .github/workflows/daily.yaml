@@ -11,10 +11,6 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: haskell-actions/setup@7909071ceec0344debcc968c6c7a96a52e8dd0d7 # v2.8.1
-        with:
-          ghc-version: 9.2.8
-          cabal-version: 3.6.2
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./app/go.mod

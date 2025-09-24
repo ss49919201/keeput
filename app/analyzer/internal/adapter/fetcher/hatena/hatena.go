@@ -2,6 +2,7 @@ package hatena
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"github.com/samber/lo"
@@ -37,7 +38,12 @@ func NewFetchLatest() fetcher.FetchLatest {
 }
 
 func fetchLatest(ctx context.Context, feedURL string) mo.Result[mo.Option[*model.Entry]] {
-	entriesResult := internal.Fetch(ctx, feedURL)
+	u, _ := url.Parse(feedURL)
+	q := u.Query()
+	q.Set("size", "1")
+	u.RawQuery = q.Encode()
+
+	entriesResult := internal.Fetch(ctx, u.String())
 	if entriesResult.IsError() {
 		return mo.Err[mo.Option[*model.Entry]](entriesResult.Error())
 	}
