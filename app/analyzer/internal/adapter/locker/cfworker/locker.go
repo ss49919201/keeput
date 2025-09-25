@@ -7,16 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"sync"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/samber/mo"
+	"github.com/ss49919201/keeput/app/analyzer/internal/apphttp"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -24,15 +22,7 @@ const (
 )
 
 var httpClient = sync.OnceValue(func() *http.Client {
-	// NOTE: retryablehttp.NewClient() は内部で cleanhttp.DefaultPooledClient() を使う。
-	// cleanhttp.DefaultPooledClient() が返す http.Client にはタイムアウトが設定されている。
-	client := retryablehttp.NewClient()
-	client.RetryMax = 3
-	client.Logger = slog.Default()
-
-	standAloneClient := client.StandardClient()
-	standAloneClient.Transport = otelhttp.NewTransport(standAloneClient.Transport)
-	return standAloneClient
+	return apphttp.DefaultClient()
 })
 
 func NewAcquire() locker.Acquire {

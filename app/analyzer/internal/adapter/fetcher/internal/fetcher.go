@@ -2,29 +2,19 @@ package internal
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/mmcdole/gofeed"
 	"github.com/samber/lo"
 	"github.com/samber/mo"
+	"github.com/ss49919201/keeput/app/analyzer/internal/apphttp"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var httpClient = sync.OnceValue(func() *http.Client {
-	// NOTE: retryablehttp.NewClient() は内部で cleanhttp.DefaultPooledClient() を使う。
-	// cleanhttp.DefaultPooledClient() が返す http.Client にはタイムアウトが設定されている。
-	client := retryablehttp.NewClient()
-	client.RetryMax = 3
-	client.Logger = slog.Default()
-
-	standAloneClient := client.StandardClient()
-	standAloneClient.Transport = otelhttp.NewTransport(standAloneClient.Transport)
-	return standAloneClient
+	return apphttp.DefaultClient()
 })
 
 // NOTE: 公開日が存在しないエントリは除外する。
