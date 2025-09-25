@@ -19,6 +19,10 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+const (
+	headerKeyLockerAPIKey = "X-LOCKER-API-KEY"
+)
+
 var httpClient = sync.OnceValue(func() *http.Client {
 	// NOTE: retryablehttp.NewClient() は内部で cleanhttp.DefaultPooledClient() を使う。
 	// cleanhttp.DefaultPooledClient() が返す http.Client にはタイムアウトが設定されている。
@@ -63,7 +67,7 @@ func acquire(ctx context.Context, lockID string) mo.Result[bool] {
 		return mo.Err[bool](err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-LOCKER-API-KEY", config.LockerAPIKeyCloudflareWorker())
+	req.Header.Set(headerKeyLockerAPIKey, config.LockerAPIKeyCloudflareWorker())
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return mo.Err[bool](err)
@@ -115,7 +119,7 @@ func release(ctx context.Context, lockID string) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-LOCKER-API-KEY", config.LockerAPIKeyCloudflareWorker())
+	req.Header.Set(headerKeyLockerAPIKey, config.LockerAPIKeyCloudflareWorker())
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return err
