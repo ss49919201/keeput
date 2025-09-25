@@ -7,28 +7,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"sync"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"github.com/samber/mo"
+	"github.com/ss49919201/keeput/app/analyzer/internal/apphttp"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+)
+
+const (
+	headerKeyLockerAPIKey = "X-LOCKER-API-KEY"
 )
 
 var httpClient = sync.OnceValue(func() *http.Client {
-	// NOTE: retryablehttp.NewClient() は内部で cleanhttp.DefaultPooledClient() を使う。
-	// cleanhttp.DefaultPooledClient() が返す http.Client にはタイムアウトが設定されている。
-	client := retryablehttp.NewClient()
-	client.RetryMax = 3
-	client.Logger = slog.Default()
-
-	standAloneClient := client.StandardClient()
-	standAloneClient.Transport = otelhttp.NewTransport(standAloneClient.Transport)
-	return standAloneClient
+	return apphttp.DefaultClient()
 })
 
 func NewAcquire() locker.Acquire {
@@ -37,16 +31,20 @@ func NewAcquire() locker.Acquire {
 	}
 }
 
+type acquireRequest struct {
+	LockID string `json:"lockId"`
+}
+
 type acquireResponse struct {
 	Msg string `json:"msg"`
 }
 
 // TODO: release との共通部分を抽象化して関数にする。
 func acquire(ctx context.Context, lockID string) mo.Result[bool] {
-	reqBodyMap := map[string]string{
-		"lockId": lockID,
+	reqBody := acquireRequest{
+		LockID: lockID,
 	}
-	reqBodyBytes, err := json.Marshal(reqBodyMap)
+	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return mo.Err[bool](err)
 	}
@@ -59,7 +57,7 @@ func acquire(ctx context.Context, lockID string) mo.Result[bool] {
 		return mo.Err[bool](err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-LOCKER-API-KEY", config.LockerAPIKeyCloudflareWorker())
+	req.Header.Set(headerKeyLockerAPIKey, config.LockerAPIKeyCloudflareWorker())
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return mo.Err[bool](err)
@@ -86,15 +84,19 @@ func NewRelease() locker.Release {
 	}
 }
 
+type releaseRequest struct {
+	LockID string `json:"lockId"`
+}
+
 type releaseResponse struct {
 	Msg string `json:"msg"`
 }
 
 func release(ctx context.Context, lockID string) error {
-	reqBodyMap := map[string]string{
-		"lockId": lockID,
+	reqBody := releaseRequest{
+		LockID: lockID,
 	}
-	reqBodyBytes, err := json.Marshal(reqBodyMap)
+	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return err
 	}
@@ -107,7 +109,7 @@ func release(ctx context.Context, lockID string) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-LOCKER-API-KEY", config.LockerAPIKeyCloudflareWorker())
+	req.Header.Set(headerKeyLockerAPIKey, config.LockerAPIKeyCloudflareWorker())
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return err
