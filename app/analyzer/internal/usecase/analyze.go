@@ -51,7 +51,7 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
 	}
 
-	if err := notify(ctx, report.IsGoalAchieved); err != nil {
+	if err := notify(ctx, report); err != nil {
 		slog.Warn("failed to notify", "error", err)
 	}
 
