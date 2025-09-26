@@ -59,8 +59,15 @@ func TestAnalyze(t *testing.T) {
 					}
 				},
 				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
-					return func(ctx context.Context, isGoalAchieved bool) error {
-						assert.True(t, isGoalAchieved)
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Go 言語の slice について",
+								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
 						return nil
 					}
 				},
@@ -104,8 +111,11 @@ func TestAnalyze(t *testing.T) {
 					}
 				},
 				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
-					return func(ctx context.Context, isGoalAchieved bool) error {
-						assert.False(t, isGoalAchieved)
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: false,
+							LatestEntry:    mo.None[*model.Entry](),
+						}, report)
 						return nil
 					}
 				},
