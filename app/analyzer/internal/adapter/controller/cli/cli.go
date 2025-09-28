@@ -14,6 +14,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	usecaseport "github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	usecaseadapter "github.com/ss49919201/keeput/app/analyzer/internal/usecase"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws"
 )
 
 func Analyze(ctx context.Context) error {
@@ -33,6 +34,7 @@ func Analyze(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	otelaws.AppendMiddlewares(&awsConfig.APIOptions)
 
 	result := usecaseadapter.NewAnalyze(
 		fetcher,
