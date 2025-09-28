@@ -12,8 +12,6 @@ type AnalyzeInput struct {
 }
 type AnalyzeOutput struct {
 	IsGoalAchieved bool
-
-	// TODO: LatestEntryPublishedAt mo.Option[time.Time]
 }
 
 type Analyze = func(context.Context, *AnalyzeInput) mo.Result[*AnalyzeOutput]

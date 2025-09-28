@@ -11,6 +11,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/persister"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/stretchr/testify/assert"
@@ -18,11 +19,12 @@ import (
 
 func TestAnalyze(t *testing.T) {
 	type args struct {
-		NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
-		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
-		NewNotify              func(t *testing.T) notifier.NotifyAnalysisReport
-		NewAcquireLock         func(t *testing.T) locker.Acquire
-		NewReleaseLock         func(t *testing.T) locker.Release
+		NewFetchLatest           func(t *testing.T) fetcher.FetchLatest
+		NewPrintAnalysisReport   func(t *testing.T) printer.PrintAnalysisReport
+		NewNotify                func(t *testing.T) notifier.NotifyAnalysisReport
+		NewAcquireLock           func(t *testing.T) locker.Acquire
+		NewReleaseLock           func(t *testing.T) locker.Release
+		NewPersistAnalysisReport func(t *testing.T) persister.PersistAnalysisReport
 
 		ctx   context.Context
 		input *usecase.AnalyzeInput
@@ -83,6 +85,19 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
+				NewPersistAnalysisReport: func(t *testing.T) persister.PersistAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Go 言語の slice について",
+								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
+						return nil
+					}
+				},
 				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
 				input: &usecase.AnalyzeInput{
 					Goal: model.GoalTypeRecentWeek,
@@ -131,6 +146,15 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
+				NewPersistAnalysisReport: func(t *testing.T) persister.PersistAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: false,
+							LatestEntry:    mo.None[*model.Entry](),
+						}, report)
+						return nil
+					}
+				},
 				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
 				input: &usecase.AnalyzeInput{
 					Goal: model.GoalTypeRecentWeek,
@@ -149,6 +173,7 @@ func TestAnalyze(t *testing.T) {
 				tt.args.NewNotify(t),
 				tt.args.NewAcquireLock(t),
 				tt.args.NewReleaseLock(t),
+				tt.args.NewPersistAnalysisReport(t),
 			)(
 				tt.args.ctx, tt.args.input,
 			)
