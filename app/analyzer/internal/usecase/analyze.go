@@ -49,15 +49,15 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 	report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
 
 	if err := persistAnalysisReport(ctx, report); err != nil {
-		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to persist anlysis report: %w", err))
+		slog.Warn("failed to persist analysis report", slog.String("error", err.Error()))
 	}
 
 	if err := printAnalysisReport(report); err != nil {
-		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to print anlysis report: %w", err))
+		slog.Warn("failed to print anlysis report", slog.String("error", err.Error()))
 	}
 
 	if err := notify(ctx, report); err != nil {
-		slog.Warn("failed to notify", "error", err)
+		slog.Warn("failed to notify analysis report", "error", err)
 	}
 
 	return mo.Ok(&usecase.AnalyzeOutput{
