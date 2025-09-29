@@ -21,7 +21,7 @@ func TestAnalyze(t *testing.T) {
 	type args struct {
 		NewFetchLatest           func(t *testing.T) fetcher.FetchLatest
 		NewPrintAnalysisReport   func(t *testing.T) printer.PrintAnalysisReport
-		NewNotify                func(t *testing.T) notifier.NotifyAnalysisReport
+		NewNotifyAnalysisReport  func(t *testing.T) notifier.NotifyAnalysisReport
 		NewAcquireLock           func(t *testing.T) locker.Acquire
 		NewReleaseLock           func(t *testing.T) locker.Release
 		NewPersistAnalysisReport func(t *testing.T) persister.PersistAnalysisReport
@@ -60,7 +60,7 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
-				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
+				NewNotifyAnalysisReport: func(t *testing.T) notifier.NotifyAnalysisReport {
 					return func(ctx context.Context, report *model.AnalysisReport) error {
 						assert.Equal(t, &model.AnalysisReport{
 							IsGoalAchieved: true,
@@ -125,7 +125,7 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
-				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
+				NewNotifyAnalysisReport: func(t *testing.T) notifier.NotifyAnalysisReport {
 					return func(ctx context.Context, report *model.AnalysisReport) error {
 						assert.Equal(t, &model.AnalysisReport{
 							IsGoalAchieved: false,
@@ -170,7 +170,7 @@ func TestAnalyze(t *testing.T) {
 			got := NewAnalyze(
 				tt.args.NewFetchLatest(t),
 				tt.args.NewPrintAnalysisReport(t),
-				tt.args.NewNotify(t),
+				tt.args.NewNotifyAnalysisReport(t),
 				tt.args.NewAcquireLock(t),
 				tt.args.NewReleaseLock(t),
 				tt.args.NewPersistAnalysisReport(t),

@@ -18,15 +18,15 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 )
 
-func NewAnalyze(fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notify notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) usecase.Analyze {
+func NewAnalyze(fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) usecase.Analyze {
 	return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
-		return analyze(ctx, in, fetchLatest, printAnalysisReport, notify, acquireLock, releaseLock, persistAnalysisReport)
+		return analyze(ctx, in, fetchLatest, printAnalysisReport, notifyAnalysisReport, acquireLock, releaseLock, persistAnalysisReport)
 	}
 }
 
 const lockIDPrefixAnalyze = "usecase:analyze"
 
-func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notify notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
+func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	acquireLockResult := acquireLock(ctx, lockID)
 	if acquireLockResult.IsError() {
@@ -56,7 +56,7 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 		slog.Warn("failed to print anlysis report", slog.String("error", err.Error()))
 	}
 
-	if err := notify(ctx, report); err != nil {
+	if err := notifyAnalysisReport(ctx, report); err != nil {
 		slog.Warn("failed to notify analysis report", "error", err)
 	}
 
