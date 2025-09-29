@@ -10,7 +10,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	sdks3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
@@ -18,11 +17,11 @@ import (
 )
 
 var s3ClientOnce sync.Once
-var s3Client *sdks3.Client
+var s3Client *s3.Client
 
 func initS3Client(config aws.Config) {
 	s3ClientOnce.Do(func() {
-		s3Client = sdks3.NewFromConfig(config)
+		s3Client = s3.NewFromConfig(config)
 	})
 }
 
