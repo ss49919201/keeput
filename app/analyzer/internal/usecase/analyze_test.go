@@ -11,6 +11,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/locker"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/persister"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/stretchr/testify/assert"
@@ -18,11 +19,12 @@ import (
 
 func TestAnalyze(t *testing.T) {
 	type args struct {
-		NewFetchLatest         func(t *testing.T) fetcher.FetchLatest
-		NewPrintAnalysisReport func(t *testing.T) printer.PrintAnalysisReport
-		NewNotify              func(t *testing.T) notifier.NotifyAnalysisReport
-		NewAcquireLock         func(t *testing.T) locker.Acquire
-		NewReleaseLock         func(t *testing.T) locker.Release
+		NewFetchLatest           func(t *testing.T) fetcher.FetchLatest
+		NewPrintAnalysisReport   func(t *testing.T) printer.PrintAnalysisReport
+		NewNotifyAnalysisReport  func(t *testing.T) notifier.NotifyAnalysisReport
+		NewAcquireLock           func(t *testing.T) locker.Acquire
+		NewReleaseLock           func(t *testing.T) locker.Release
+		NewPersistAnalysisReport func(t *testing.T) persister.PersistAnalysisReport
 
 		ctx   context.Context
 		input *usecase.AnalyzeInput
@@ -58,9 +60,16 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
-				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
-					return func(ctx context.Context, isGoalAchieved bool) error {
-						assert.True(t, isGoalAchieved)
+				NewNotifyAnalysisReport: func(t *testing.T) notifier.NotifyAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Go 言語の slice について",
+								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
 						return nil
 					}
 				},
@@ -73,6 +82,19 @@ func TestAnalyze(t *testing.T) {
 				NewReleaseLock: func(t *testing.T) locker.Release {
 					return func(ctx context.Context, lockID string) error {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
+						return nil
+					}
+				},
+				NewPersistAnalysisReport: func(t *testing.T) persister.PersistAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Go 言語の slice について",
+								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
 						return nil
 					}
 				},
@@ -103,9 +125,12 @@ func TestAnalyze(t *testing.T) {
 						return nil
 					}
 				},
-				NewNotify: func(t *testing.T) notifier.NotifyAnalysisReport {
-					return func(ctx context.Context, isGoalAchieved bool) error {
-						assert.False(t, isGoalAchieved)
+				NewNotifyAnalysisReport: func(t *testing.T) notifier.NotifyAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: false,
+							LatestEntry:    mo.None[*model.Entry](),
+						}, report)
 						return nil
 					}
 				},
@@ -118,6 +143,15 @@ func TestAnalyze(t *testing.T) {
 				NewReleaseLock: func(t *testing.T) locker.Release {
 					return func(ctx context.Context, lockID string) error {
 						assert.Equal(t, "usecase:analyze:2025-01-10", lockID)
+						return nil
+					}
+				},
+				NewPersistAnalysisReport: func(t *testing.T) persister.PersistAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: false,
+							LatestEntry:    mo.None[*model.Entry](),
+						}, report)
 						return nil
 					}
 				},
@@ -136,9 +170,10 @@ func TestAnalyze(t *testing.T) {
 			got := NewAnalyze(
 				tt.args.NewFetchLatest(t),
 				tt.args.NewPrintAnalysisReport(t),
-				tt.args.NewNotify(t),
+				tt.args.NewNotifyAnalysisReport(t),
 				tt.args.NewAcquireLock(t),
 				tt.args.NewReleaseLock(t),
+				tt.args.NewPersistAnalysisReport(t),
 			)(
 				tt.args.ctx, tt.args.input,
 			)

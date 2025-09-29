@@ -11,6 +11,7 @@ import (
 
 	"github.com/ss49919201/keeput/app/analyzer/internal/apphttp"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/notifier"
 )
 
@@ -23,13 +24,13 @@ type reqBody struct {
 }
 
 func NewNotifyAnalysisReport() notifier.NotifyAnalysisReport {
-	return func(ctx context.Context, isGoalAchieved bool) error {
-		return notifyAnalysisReport(ctx, config.DiscordWebhookURL(), isGoalAchieved)
+	return func(ctx context.Context, report *model.AnalysisReport) error {
+		return notifyAnalysisReport(ctx, config.DiscordWebhookURL(), report)
 	}
 }
 
-func notifyAnalysisReport(ctx context.Context, webhookURL string, isGoalAchieved bool) error {
-	body := reqBody{Content: message(isGoalAchieved)}
+func notifyAnalysisReport(ctx context.Context, webhookURL string, report *model.AnalysisReport) error {
+	body := reqBody{Content: buildMessage(report)}
 	payload, err := json.Marshal(body)
 	if err != nil {
 		return fmt.Errorf("failed to marshal request body: %w", err)
@@ -55,8 +56,8 @@ func notifyAnalysisReport(ctx context.Context, webhookURL string, isGoalAchieved
 	return nil
 }
 
-func message(isGoalAchieved bool) string {
-	if isGoalAchieved {
+func buildMessage(report *model.AnalysisReport) string {
+	if report.IsGoalAchieved {
 		return "目標達成です🎊よく頑張りました！"
 	}
 	return "目標未達です😢これから頑張りましょう！"

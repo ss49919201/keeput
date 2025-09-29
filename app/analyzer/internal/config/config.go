@@ -61,3 +61,11 @@ var discordWebhookURL = sync.OnceValue(func() string {
 func DiscordWebhookURL() string {
 	return discordWebhookURL()
 }
+
+var s3BucketName = sync.OnceValue(func() string {
+	return os.Getenv("S3_BUCKET_NAME")
+})
+
+func S3BucketName() string {
+	return s3BucketName()
+}
