@@ -22,7 +22,7 @@ app.use("*", async (c, next) => {
 
   const apiKey = c.req.header("X-LOCKER-API-KEY");
   if (apiKey !== c.env.API_KEY) {
-    throw new HTTPException(403, { message: "Forbidden" });
+    throw new HTTPException(401);
   }
   await next();
 });
