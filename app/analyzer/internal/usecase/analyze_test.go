@@ -19,7 +19,7 @@ import (
 
 func TestAnalyze(t *testing.T) {
 	type args struct {
-		NewFetchLatest           func(t *testing.T) fetcher.FetchLatest
+		NewFetchLatestEntry      func(t *testing.T) fetcher.FetchLatestEntry
 		NewPrintAnalysisReport   func(t *testing.T) printer.PrintAnalysisReport
 		NewNotifyAnalysisReport  func(t *testing.T) notifier.NotifyAnalysisReport
 		NewAcquireLock           func(t *testing.T) locker.Acquire
@@ -37,7 +37,7 @@ func TestAnalyze(t *testing.T) {
 		{
 			"return results of achieving goal",
 			args{
-				NewFetchLatest: func(t *testing.T) fetcher.FetchLatest {
+				NewFetchLatestEntry: func(t *testing.T) fetcher.FetchLatestEntry {
 					return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
 						return mo.Ok(mo.Some(&model.Entry{
 							Title:       "Go 言語の slice について",
@@ -110,7 +110,7 @@ func TestAnalyze(t *testing.T) {
 		{
 			"return results of not achieving goal",
 			args{
-				NewFetchLatest: func(t *testing.T) fetcher.FetchLatest {
+				NewFetchLatestEntry: func(t *testing.T) fetcher.FetchLatestEntry {
 					return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
 						return mo.Ok(mo.None[*model.Entry]())
 					}
@@ -168,7 +168,7 @@ func TestAnalyze(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewAnalyze(
-				tt.args.NewFetchLatest(t),
+				tt.args.NewFetchLatestEntry(t),
 				tt.args.NewPrintAnalysisReport(t),
 				tt.args.NewNotifyAnalysisReport(t),
 				tt.args.NewAcquireLock(t),

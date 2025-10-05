@@ -12,13 +12,13 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 )
 
-func NewFetchLatest() fetcher.FetchLatest {
+func NewFetchLatestEntry() fetcher.FetchLatestEntry {
 	return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
-		return fetchLatest(ctx, config.FeedURLHatena())
+		return fetchLatestEntry(ctx, config.FeedURLHatena())
 	}
 }
 
-func fetchLatest(ctx context.Context, feedURL string) mo.Result[mo.Option[*model.Entry]] {
+func fetchLatestEntry(ctx context.Context, feedURL string) mo.Result[mo.Option[*model.Entry]] {
 	u, _ := url.Parse(feedURL)
 	q := u.Query()
 	q.Set("size", "1")

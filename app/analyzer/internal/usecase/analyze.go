@@ -18,15 +18,15 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 )
 
-func NewAnalyze(fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) usecase.Analyze {
+func NewAnalyze(fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) usecase.Analyze {
 	return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
-		return analyze(ctx, in, fetchLatest, printAnalysisReport, notifyAnalysisReport, acquireLock, releaseLock, persistAnalysisReport)
+		return analyze(ctx, in, fetchLatestEntry, printAnalysisReport, notifyAnalysisReport, acquireLock, releaseLock, persistAnalysisReport)
 	}
 }
 
 const lockIDPrefixAnalyze = "usecase:analyze"
 
-func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.FetchLatest, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
+func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	acquireLockResult := acquireLock(ctx, lockID)
 	if acquireLockResult.IsError() {
@@ -41,7 +41,7 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatest fetcher.
 		}
 	}()
 
-	latestEntry, err := fetchLatest(ctx).Get()
+	latestEntry, err := fetchLatestEntry(ctx).Get()
 	if err != nil {
 		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to fetch latest entry: %w", err))
 	}

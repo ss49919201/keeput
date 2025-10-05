@@ -25,10 +25,10 @@ func Analyze(ctx context.Context) error {
 	}
 
 	fetcher := lo.If(
-		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchLatest(),
+		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchLatestEntry(),
 	).ElseIf(
-		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchLatest(),
-	).Else(hatena.NewFetchLatest())
+		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchLatestEntry(),
+	).Else(hatena.NewFetchLatestEntry())
 
 	awsConfig, err := sdkconfig.LoadDefaultConfig(ctx)
 	if err != nil {
