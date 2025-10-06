@@ -54,7 +54,7 @@ func (e *EntryPlatform) Type() EntryPlatformType {
 	return e.entryPlatformType
 }
 
-// DANGER: 最大入禁止
+// DANGER: 最代入禁止
 // 要素の順序は優先度の昇順
 var entryPlatforms = []*EntryPlatform{
 	{

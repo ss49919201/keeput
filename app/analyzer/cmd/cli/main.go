@@ -33,6 +33,8 @@ func run(ctx context.Context) (err error) {
 		}
 	}()
 
+	ctx = appctx.SetNow(context.Background(), time.Now())
+
 	shutdownTraceProvider, err := appotel.InitTraceProvider(ctx)
 	if err != nil {
 		slog.Error("failed to construct otel trace provider", slog.String("error", err.Error()))
@@ -53,8 +55,7 @@ func run(ctx context.Context) (err error) {
 }
 
 func main() {
-	ctx := appctx.SetNow(context.Background(), time.Now())
-	if err := run(ctx); err != nil {
+	if err := run(context.Background()); err != nil {
 		slog.Error("failed to run cli program", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
