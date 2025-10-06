@@ -6,11 +6,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/controller/cli"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appotel"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appslog"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
+	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
 	"go.opentelemetry.io/otel"
 )
 
@@ -47,8 +49,16 @@ func run(ctx context.Context) (err error) {
 
 	ctx, span := otel.Tracer(traceName).Start(ctx, "CLI Entrypoint")
 	defer span.End()
-	if err := cli.Analyze(ctx); err != nil {
+
+	analyze, err := registory.NewAnalyzeUsecase(ctx)
+	if err != nil {
 		return err
+	}
+	result := analyze(ctx, &usecase.AnalyzeInput{
+		Goal: model.GoalTypeRecentWeek,
+	})
+	if result.IsError() {
+		return result.Error()
 	}
 
 	return nil

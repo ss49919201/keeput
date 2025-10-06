@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"os"
 	"time"
@@ -12,6 +11,9 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/appotel"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appslog"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
+	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
+	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
 	"go.opentelemetry.io/otel"
 )
 
@@ -49,7 +51,17 @@ func handleRequest(ctx context.Context) (err error) {
 	ctx, span := otel.Tracer(traceName).Start(ctx, "Lambda Entrypoint")
 	defer span.End()
 
-	log.Print("Hello")
+	analyze, err := registory.NewAnalyzeUsecase(ctx)
+	if err != nil {
+		return err
+	}
+	result := analyze(ctx, &usecase.AnalyzeInput{
+		Goal: model.GoalTypeRecentWeek,
+	})
+	if result.IsError() {
+		return result.Error()
+	}
+
 	return nil
 }
 
