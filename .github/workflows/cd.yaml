@@ -1,0 +1,21 @@
+name: CD
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-web:
+    name: Deploy Locker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app/locker
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: ./app/locker
+          quiet: true
