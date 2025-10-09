@@ -1,9 +1,9 @@
-package cli
+package registory
 
 import (
 	"context"
 
-	sdkconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/samber/lo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/hatena"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/fetcher/zenn"
@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws"
 )
 
-func Analyze(ctx context.Context) error {
+func NewAnalyzeUsecase(ctx context.Context) (usecaseport.Analyze, error) {
 	var entryPlatformType model.EntryPlatformType
 	for entryPlatform := range model.EntryPlatformIteratorOrderByPriorityAsc() {
 		entryPlatformType = entryPlatform.Type()
@@ -25,30 +25,23 @@ func Analyze(ctx context.Context) error {
 	}
 
 	fetcher := lo.If(
-		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchLatest(),
+		entryPlatformType == model.EntryPlatformTypeHatena, hatena.NewFetchLatestEntry(),
 	).ElseIf(
-		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchLatest(),
-	).Else(hatena.NewFetchLatest())
+		entryPlatformType == model.EntryPlatformTypeZenn, zenn.NewFetchLatestEntry(),
+	).Else(hatena.NewFetchLatestEntry())
 
-	awsConfig, err := sdkconfig.LoadDefaultConfig(ctx)
+	awsConfig, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	otelaws.AppendMiddlewares(&awsConfig.APIOptions)
 
-	result := usecaseadapter.NewAnalyze(
+	return usecaseadapter.NewAnalyze(
 		fetcher,
 		stdout.PrintAnalysisReport,
 		discord.NewNotifyAnalysisReport(),
 		cfworker.NewAcquire(),
 		cfworker.NewRelease(),
 		s3.NewPersistAnalysisReport(awsConfig),
-	)(ctx, &usecaseport.AnalyzeInput{
-		Goal: model.GoalTypeRecentWeek,
-	})
-	if result.IsError() {
-		return result.Error()
-	}
-
-	return nil
+	), nil
 }

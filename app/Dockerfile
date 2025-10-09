@@ -1,0 +1,11 @@
+FROM golang:1.25.2-alpine3.22 AS build
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+COPY analyzer ./analyzer
+RUN go build -o main ./analyzer/cmd/awslambda/main.go
+
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /app/main /main
+ENTRYPOINT [ "/main" ]

@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appotel"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appslog"
@@ -17,7 +18,7 @@ import (
 )
 
 const (
-	traceName = "github.com/ss49919201/keeput/app/cmd/cli"
+	traceName = "github.com/ss49919201/keeput/app/cmd/awslambda"
 )
 
 func init() {
@@ -28,14 +29,14 @@ func init() {
 	}
 }
 
-func run(ctx context.Context) (err error) {
+func handleRequest(ctx context.Context) (err error) {
 	defer func() {
 		if err != nil {
 			appotel.RecordError(ctx, err)
 		}
 	}()
 
-	ctx = appctx.SetNow(context.Background(), time.Now())
+	ctx = appctx.SetNow(ctx, time.Now())
 
 	shutdownTraceProvider, err := appotel.InitTraceProvider(ctx)
 	if err != nil {
@@ -47,7 +48,7 @@ func run(ctx context.Context) (err error) {
 		}
 	}()
 
-	ctx, span := otel.Tracer(traceName).Start(ctx, "CLI Entrypoint")
+	ctx, span := otel.Tracer(traceName).Start(ctx, "Lambda Entrypoint")
 	defer span.End()
 
 	analyze, err := registory.NewAnalyzeUsecase(ctx)
@@ -65,8 +66,5 @@ func run(ctx context.Context) (err error) {
 }
 
 func main() {
-	if err := run(context.Background()); err != nil {
-		slog.Error("failed to run cli program", slog.String("error", err.Error()))
-		os.Exit(1)
-	}
+	lambda.Start(handleRequest)
 }

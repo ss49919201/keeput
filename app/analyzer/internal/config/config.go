@@ -4,13 +4,22 @@ import (
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/joho/godotenv"
 )
+
+func InitForLocal() error {
+	if !isLocal() {
+		return nil
+	}
+	return godotenv.Load()
+}
 
 var env = sync.OnceValue(func() string {
 	return os.Getenv("ENV")
 })
 
-func IsLocal() bool {
+func isLocal() bool {
 	return strings.ToLower(env()) == "local"
 }
 
