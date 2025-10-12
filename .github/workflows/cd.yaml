@@ -2,6 +2,8 @@ name: CD
 on:
   push:
     branches: [ main, issue-34 ]
+permissions:
+  id-token: write
 
 jobs:
   deploy-locker:
