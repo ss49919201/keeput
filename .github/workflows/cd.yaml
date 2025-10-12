@@ -16,6 +16,7 @@ jobs:
       - uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          wranglerVersion: 4.36.0 # TODO: package.json から dynamic に取得したい
           workingDirectory: ./app/locker
 
   deploy-analyzer:
