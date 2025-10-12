@@ -1,7 +1,7 @@
 name: CD
 on:
   push:
-    branches: [ main, issue-34 ]
+    branches: [ main ]
 permissions:
   id-token: write
 
