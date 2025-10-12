@@ -15,11 +15,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - id: wrangler-version
         run: |
-          version=$(jq -r '.devDependencies.wrangler // .dependencies.wrangler // ""' package.json)
-          if [ -z "$version" ]; then
-            echo "wrangler dependency not found in package.json" >&2
-            exit 1
-          fi
+          version=$(jq -r '.devDependencies.wrangler' package.json)
           version=${version#^}
           version=${version#~}
           echo "wranglerVersion=$version" >> "$GITHUB_OUTPUT"
