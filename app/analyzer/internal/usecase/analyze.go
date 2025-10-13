@@ -3,11 +3,11 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/samber/mo"
+	"github.com/samber/mo/result"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
@@ -28,39 +28,41 @@ const lockIDPrefixAnalyze = "usecase:analyze"
 
 func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
-	acquireLockResult := acquireLock(ctx, lockID)
-	if acquireLockResult.IsError() {
-		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to lock: %w", acquireLockResult.Error()))
-	}
-	if !acquireLockResult.MustGet() {
-		return mo.Err[*usecase.AnalyzeOutput](errors.New("lock already acquired"))
-	}
-	defer func() {
-		if err := releaseLock(ctx, lockID); err != nil {
-			slog.Warn("failed release lock")
-		}
-	}()
-
-	latestEntry, err := fetchLatestEntry(ctx).Get()
-	if err != nil {
-		return mo.Err[*usecase.AnalyzeOutput](fmt.Errorf("failed to fetch latest entry: %w", err))
-	}
-
-	report := model.Analyze(latestEntry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
-
-	if err := persistAnalysisReport(ctx, report); err != nil {
-		slog.Warn("failed to persist analysis report", slog.String("error", err.Error()))
-	}
-
-	if err := printAnalysisReport(report); err != nil {
-		slog.Warn("failed to print anlysis report", slog.String("error", err.Error()))
-	}
-
-	if err := notifyAnalysisReport(ctx, report); err != nil {
-		slog.Warn("failed to notify analysis report", "error", err)
-	}
-
-	return mo.Ok(&usecase.AnalyzeOutput{
-		IsGoalAchieved: report.IsGoalAchieved,
-	})
+	return result.Pipe5(
+		acquireLock(ctx, lockID),
+		result.FlatMap(func(locked bool) mo.Result[struct{}] {
+			if !locked {
+				return mo.Err[struct{}](errors.New("lock already acquired"))
+			}
+			defer func() {
+				if err := releaseLock(ctx, lockID); err != nil {
+					slog.Warn("failed release lock")
+				}
+			}()
+			return mo.Ok(struct{}{})
+		}),
+		result.FlatMap(func(_ struct{}) mo.Result[mo.Option[*model.Entry]] {
+			return fetchLatestEntry(ctx)
+		}),
+		result.Map(func(entry mo.Option[*model.Entry]) *model.AnalysisReport {
+			return model.Analyze(entry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
+		}),
+		result.Map(func(report *model.AnalysisReport) *model.AnalysisReport {
+			if err := persistAnalysisReport(ctx, report); err != nil {
+				slog.Warn("failed to persist analysis report", slog.String("error", err.Error()))
+			}
+			if err := printAnalysisReport(report); err != nil {
+				slog.Warn("failed to print anlysis report", slog.String("error", err.Error()))
+			}
+			if err := notifyAnalysisReport(ctx, report); err != nil {
+				slog.Warn("failed to notify analysis report", "error", err)
+			}
+			return report
+		}),
+		result.Map(func(report *model.AnalysisReport) *usecase.AnalyzeOutput {
+			return &usecase.AnalyzeOutput{
+				IsGoalAchieved: report.IsGoalAchieved,
+			}
+		}),
+	)
 }
