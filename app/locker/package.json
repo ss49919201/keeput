@@ -1,6 +1,9 @@
 {
 	"name": "keeput-locker",
 	"type": "module",
+	"engines": {
+    	"node": "22.x"
+  	},
 	"scripts": {
 		"dev": "wrangler dev",
 		"deploy": "wrangler deploy --minify",
