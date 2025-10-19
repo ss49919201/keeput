@@ -12,11 +12,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var shutdownTraceProvider func(context.Context) error
+type typeShutdownTraceProvider = func(context.Context) error
+
+var shutdownTraceProvider typeShutdownTraceProvider
 var errInitOtelProvider error
 var initOtelProviderOnce sync.Once
 
-func InitTraceProvider(ctx context.Context) (func(context.Context) error, error) {
+func InitTraceProvider(ctx context.Context) (typeShutdownTraceProvider, error) {
 	initOtelProviderOnce.Do(func() {
 		exporter, err := otlptracehttp.New(ctx)
 		if err != nil {
