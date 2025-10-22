@@ -28,22 +28,22 @@ const lockIDPrefixAnalyze = "usecase:analyze"
 
 func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
-	return result.Pipe5(
-		acquireLock(ctx, lockID),
-		result.FlatMap(func(locked bool) mo.Result[struct{}] {
-			if !locked {
-				return mo.Err[struct{}](errors.New("lock already acquired"))
-			}
-			defer func() {
-				if err := releaseLock(ctx, lockID); err != nil {
-					slog.Warn("failed release lock")
-				}
-			}()
-			return mo.Ok(struct{}{})
-		}),
-		result.FlatMap(func(_ struct{}) mo.Result[mo.Option[*model.Entry]] {
-			return fetchLatestEntry(ctx)
-		}),
+	// NOTE: defer でのロック解放遅延を analyze のブロックで行いたいため、ロック処理は result.Pipe に含めない
+	locked, err := acquireLock(ctx, lockID).Get()
+	if err != nil {
+		return mo.Err[*usecase.AnalyzeOutput](err)
+	}
+	if !locked {
+		return mo.Err[*usecase.AnalyzeOutput](errors.New("lock already acquired"))
+	}
+	defer func() {
+		if err := releaseLock(ctx, lockID); err != nil {
+			slog.Warn("failed release lock")
+		}
+	}()
+
+	return result.Pipe3(
+		fetchLatestEntry(ctx),
 		result.Map(func(entry mo.Option[*model.Entry]) *model.AnalysisReport {
 			return model.Analyze(entry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
 		}),
