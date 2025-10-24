@@ -14,6 +14,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda"
 	"go.opentelemetry.io/otel"
 )
 
@@ -30,6 +31,21 @@ func init() {
 }
 
 func handleRequest(ctx context.Context) (err error) {
+	// fmt.Printf("hello\n")
+	// {
+	// 	req, err := http.NewRequest("GET", "localhost:4318", nil)
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+	// 	resp, err := http.DefaultClient.Do(req)
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	} else {
+	// 		b, _ := io.ReadAll(resp.Body)
+	// 		fmt.Printf("status=%d,body=%s\n", resp.StatusCode, b)
+	// 	}
+	// }
+
 	defer func() {
 		if err != nil {
 			appotel.RecordError(ctx, err)
@@ -66,5 +82,5 @@ func handleRequest(ctx context.Context) (err error) {
 }
 
 func main() {
-	lambda.Start(handleRequest)
+	lambda.Start(otellambda.InstrumentHandler(handleRequest))
 }
