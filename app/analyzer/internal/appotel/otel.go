@@ -20,7 +20,9 @@ var initOtelProviderOnce sync.Once
 
 func InitTraceProvider(ctx context.Context) (typeShutdownTraceProvider, error) {
 	initOtelProviderOnce.Do(func() {
-		exporter, err := otlptracehttp.New(ctx)
+		exporter, err := otlptracehttp.New(ctx,
+			otlptracehttp.WithInsecure(),
+		)
 		if err != nil {
 			errInitOtelProvider = err
 			return
