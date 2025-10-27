@@ -1,0 +1,22 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlphttp/mackerel:
+    endpoint: "https://otlp-vaxila.mackerelio.com"
+    headers:
+      Accept: "*/*"
+      "Mackerel-Api-Key": ${env:MACKEREL_API_KEY}
+  awsxray:
+    region: ap-northeast-1
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlphttp/mackerel, awsxray, debug]
