@@ -19,5 +19,8 @@ RUN yum -y install unzip && \
     unzip layer.zip && rm -f layer.zip
 
 FROM gcr.io/distroless/static-debian12
+WORKDIR /opt
+COPY --from=otelcollectorlayer /opt .
+COPY analyzer_collector_config.yaml /opt/collector-config/config.yaml
 COPY --from=build /app/main /main
 ENTRYPOINT [ "/main" ]
