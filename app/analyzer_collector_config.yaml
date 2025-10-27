@@ -5,8 +5,6 @@ receivers:
       http:
 
 exporters:
-  debug:
-    verbosity: detailed
   otlphttp/mackerel:
     endpoint: "https://otlp-vaxila.mackerelio.com"
     headers:
@@ -19,4 +17,4 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlphttp/mackerel, awsxray, debug]
+      exporters: [otlphttp/mackerel, awsxray]
