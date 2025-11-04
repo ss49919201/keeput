@@ -1,7 +1,7 @@
 name: CD
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 permissions:
   id-token: write
 
@@ -49,8 +49,15 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: keeput
           IMAGE_TAG: analyzer_${{ github.sha }}
+          AWS_ACCESS_KEY_ID: ${{ steps.configure-aws-credintials.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.configure-aws-credintials.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.configure-aws-credintials.outputs.aws-session-token }}
         run: |
-          docker buildx build -f Dockerfile.Analyzer --platform linux/amd64 --provenance=false -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker buildx build -f Dockerfile.Analyzer --platform linux/amd64 \
+            --secret type=env,id=AWS_ACCESS_KEY_ID,env=AWS_ACCESS_KEY_ID \
+            --secret type=env,id=AWS_SECRET_ACCESS_KEY,env=AWS_SECRET_ACCESS_KEY \
+            --secret type=env,id=AWS_SESSION_TOKEN,env=AWS_SESSION_TOKEN \
+            --provenance=false -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       - name: Deploy Lambda function with container image
