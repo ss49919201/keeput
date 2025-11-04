@@ -12,6 +12,7 @@ ENV AWS_DEFAULT_REGION=ap-northeast-1
 WORKDIR /opt
 RUN --mount=type=secret,id=AWS_ACCESS_KEY_ID,env=AWS_ACCESS_KEY_ID \
     --mount=type=secret,id=AWS_SECRET_ACCESS_KEY,env=AWS_SECRET_ACCESS_KEY \
+    --mount=type=secret,id=AWS_SESSION_TOKEN,env=AWS_SESSION_TOKEN \
     yum -y install unzip && \
     curl $(aws lambda get-layer-version-by-arn --arn ${LAYER_ARN} --query 'Content.Location' --output text) --output layer.zip && \
     unzip layer.zip && rm -f layer.zip
