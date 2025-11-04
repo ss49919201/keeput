@@ -49,8 +49,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: keeput
           IMAGE_TAG: analyzer_${{ github.sha }}
-          AWS_ACCESS_KEY_ID: ${{ steps.configure-aws-credintials.aws-access-key-id }}
-          AWS_SECRET_ACCESS_KEY: ${{ steps.configure-aws-credintials.aws-secret-access-key }}
+          AWS_ACCESS_KEY_ID: ${{ steps.configure-aws-credintials.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.configure-aws-credintials.outputs.aws-secret-access-key }}
           AWS_SESSION_TOKEN: ${{ steps.configure-aws-credintials.outputs.aws-session-token }}
         run: |
           docker buildx build -f Dockerfile.Analyzer --platform linux/amd64 \
