@@ -14,11 +14,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
-	"go.opentelemetry.io/otel"
-)
-
-const (
-	traceName = "github.com/ss49919201/keeput/app/cmd/awslambda"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda"
 )
 
 func init() {
@@ -38,19 +34,6 @@ func handleRequest(ctx context.Context) (err error) {
 
 	ctx = appctx.SetNow(ctx, time.Now())
 
-	shutdownTraceProvider, err := appotel.InitTraceProvider(ctx)
-	if err != nil {
-		slog.Error("failed to construct otel trace provider", slog.String("error", err.Error()))
-	}
-	defer func() {
-		if err := shutdownTraceProvider(ctx); err != nil {
-			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
-		}
-	}()
-
-	ctx, span := otel.Tracer(traceName).Start(ctx, "Lambda Entrypoint")
-	defer span.End()
-
 	analyze, err := registory.NewAnalyzeUsecase(ctx)
 	if err != nil {
 		return err
@@ -66,5 +49,15 @@ func handleRequest(ctx context.Context) (err error) {
 }
 
 func main() {
-	lambda.Start(handleRequest)
+	ctx := context.Background()
+	shutdownTraceProvider, err := appotel.InitTraceProvider(ctx)
+	if err != nil {
+		slog.Error("failed to construct otel trace provider", slog.String("error", err.Error()))
+	}
+	defer func() {
+		if err := shutdownTraceProvider(ctx); err != nil {
+			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
+		}
+	}()
+	lambda.Start(otellambda.InstrumentHandler(handleRequest))
 }
