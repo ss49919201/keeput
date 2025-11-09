@@ -11,6 +11,11 @@ provider "aws" {
   region = "ap-northeast-1"
 }
 
+module "storage" {
+  source = "../../../../module/analyzer/storage"
+  env    = "dev"
+}
+
 module "service" {
   source = "../../../../module/analyzer/service"
   env    = "dev"
