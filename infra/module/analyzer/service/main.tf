@@ -2,6 +2,13 @@ variable "env" {
   type = string
 }
 
+variable "s3_bucket" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}
+
 
 resource "aws_ecr_repository" "analyzer_lambda" {
   name                 = "keeput-analyzer-lambda-${var.env}"
@@ -34,10 +41,11 @@ data "aws_iam_policy_document" "analyzer_lambda_permissions" {
   statement {
     effect = "Allow"
     actions = [
+      "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = [aws_cloudwatch_log_group.analyzer_lambda.arn]
+    resources = ["${aws_cloudwatch_log_group.analyzer_lambda.arn}:*"]
   }
 
   statement {
@@ -47,6 +55,23 @@ data "aws_iam_policy_document" "analyzer_lambda_permissions" {
       "xray:PutTelemetryRecords"
     ]
     resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject"
+    ]
+    resources = ["${var.s3_bucket.arn}/*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [var.s3_bucket.arn]
   }
 }
 
@@ -66,16 +91,15 @@ resource "aws_iam_role_policy_attachment" "analyzer_lambda_policy_attachment" {
 }
 
 data "aws_ssm_parameter" "discord_webhook_url" {
-  name            = "/keeput/analyzer/discord-webhook-url"
+  name = "/keeput/analyzer/discord-webhook-url"
 }
 
 data "aws_ssm_parameter" "locker_api_key_cloudflare_worker" {
-  name            = "/keeput/locker/api-key-cloudflare-worker"
+  name = "/keeput/locker/api-key-cloudflare-worker"
 }
 
 data "aws_ssm_parameter" "mackerel_api_key" {
-  name            = "/keeput/mackerel-api-key"
-  with_decryption = true
+  name = "/keeput/mackerel-api-key"
 }
 
 resource "aws_lambda_function" "analyzer_lambda" {
@@ -94,7 +118,7 @@ resource "aws_lambda_function" "analyzer_lambda" {
       LOCKER_URL_CLOUDFLARE_WORKER     = "https://keeput-locker.ss49919201.workers.dev"
       LOG_LEVEL                        = "WARN"
       OTEL_SERVICE_NAME                = "keeput"
-      S3_BUCKET_NAME                   = ""
+      S3_BUCKET_NAME                   = var.s3_bucket.name
       MACKEREL_API_KEY                 = data.aws_ssm_parameter.mackerel_api_key.value
     }
   }

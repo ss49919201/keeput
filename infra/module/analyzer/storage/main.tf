@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "analyzer" {
 }
 
 resource "aws_s3_bucket_public_access_block" "analyzer" {
-  bucket = aws_s3_bucket.analyzer.id
+  bucket                  = aws_s3_bucket.analyzer.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -35,15 +35,14 @@ resource "aws_s3_bucket" "analyzer_log" {
 }
 
 resource "aws_s3_bucket_logging" "example" {
-  bucket = aws_s3_bucket.analyzer.id
+  bucket        = aws_s3_bucket.analyzer.id
   target_bucket = aws_s3_bucket.analyzer_log.id
   target_prefix = "log/"
 }
 
-output "bucket_name" {
-  value       = aws_s3_bucket.analyzer.id
-}
-
-output "bucket_arn" {
-  value       = aws_s3_bucket.analyzer.arn
+output "s3_bucket" {
+  value = {
+    name = aws_s3_bucket.analyzer.id
+    arn  = aws_s3_bucket.analyzer.arn
+  }
 }

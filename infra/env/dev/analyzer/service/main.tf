@@ -17,6 +17,7 @@ module "storage" {
 }
 
 module "service" {
-  source = "../../../../module/analyzer/service"
-  env    = "dev"
+  source    = "../../../../module/analyzer/service"
+  env       = "dev"
+  s3_bucket = module.storage.s3_bucket
 }
