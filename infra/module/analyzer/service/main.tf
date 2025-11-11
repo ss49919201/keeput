@@ -176,9 +176,13 @@ resource "aws_iam_role_policy_attachment" "scheduler_lambda_invoke" {
   policy_arn = aws_iam_policy.scheduler_lambda_invoke.arn
 }
 
+resource "aws_scheduler_schedule_group" "analyzer" {
+  name = "keeput-analyzer-${var.env}"
+}
+
 resource "aws_scheduler_schedule" "analyzer_lambda" {
   name       = "keeput-analyzer-${var.env}"
-  group_name = "keeput-${var.env}" # タグ的な意味合い
+  group_name = aws_scheduler_schedule_group.analyzer.name
   flexible_time_window {
     mode = "OFF"
   }
