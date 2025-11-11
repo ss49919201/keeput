@@ -131,3 +131,60 @@ resource "aws_lambda_function" "analyzer_lambda" {
     ]
   }
 }
+
+resource "aws_lambda_permission" "allow_eventbridge_scheduler" {
+  statement_id  = "AllowExecutionFromEventBridgeScheduler"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.analyzer_lambda.function_name
+  principal     = "scheduler.amazonaws.com"
+  source_arn    = aws_scheduler_schedule.analyzer_lambda.arn
+}
+
+data "aws_iam_policy_document" "scheduler_assume_role" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["scheduler.amazonaws.com"]
+    }
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "scheduler" {
+  name               = "keeput-analyzer-scheduler-${var.env}"
+  assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
+}
+
+data "aws_iam_policy_document" "scheduler_lambda_invoke" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+    resources = [aws_lambda_function.analyzer_lambda.arn]
+  }
+}
+
+resource "aws_iam_policy" "scheduler_lambda_invoke" {
+  name   = "keeput-analyzer-scheduler-lambda-invoke-${var.env}"
+  policy = data.aws_iam_policy_document.scheduler_lambda_invoke.json
+}
+
+resource "aws_iam_role_policy_attachment" "scheduler_lambda_invoke" {
+  role       = aws_iam_role.scheduler.name
+  policy_arn = aws_iam_policy.scheduler_lambda_invoke.arn
+}
+
+resource "aws_scheduler_schedule" "analyzer_lambda" {
+  name       = "keeput-analyzer-${var.env}"
+  group_name = "keeput-${var.env}" # タグ的な意味合い
+  flexible_time_window {
+    mode = "OFF"
+  }
+  schedule_expression = "cron(0 12 * * ? *)"
+  target {
+    arn      = aws_lambda_function.analyzer_lambda.arn
+    role_arn = aws_iam_role.scheduler.arn
+  }
+}
