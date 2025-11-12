@@ -12,12 +12,12 @@ provider "aws" {
 }
 
 module "storage" {
-  source = "../../../../module/analyzer/storage"
+  source = "../../../module/analyzer/storage"
   env    = "dev"
 }
 
 module "service" {
-  source    = "../../../../module/analyzer/service"
+  source    = "../../../module/analyzer/service"
   env       = "dev"
   s3_bucket = module.storage.s3_bucket
 }
