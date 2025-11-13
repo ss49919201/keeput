@@ -27,8 +27,8 @@ func NewAnalyze(fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport p
 const lockIDPrefixAnalyze = "usecase:analyze"
 
 func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
-	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	// NOTE: defer でのロック解放遅延を analyze のブロックで行いたいため、ロック処理は result.Pipe に含めない
+	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	locked, err := acquireLock(ctx, lockID).Get()
 	if err != nil {
 		return mo.Err[*usecase.AnalyzeOutput](err)

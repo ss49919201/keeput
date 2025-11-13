@@ -39,7 +39,6 @@ type acquireResponse struct {
 	Msg string `json:"msg"`
 }
 
-// TODO: release との共通部分を抽象化して関数にする。
 func acquire(ctx context.Context, lockID string) mo.Result[bool] {
 	reqBody := acquireRequest{
 		LockID: lockID,
