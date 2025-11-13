@@ -5,6 +5,11 @@ terraform {
       version = "6.20.0"
     }
   }
+  backend "s3" {
+    bucket = "keeput-tf-state"
+    key    = "prod/analyzer/service/terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 provider "aws" {
