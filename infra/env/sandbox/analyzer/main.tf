@@ -5,6 +5,11 @@ terraform {
       version = "6.20.0"
     }
   }
+  backend "s3" {
+    bucket = "keeput-tf-state"
+    key    = "sandbox/analyzer/service/terraform.tfstate"
+    region = "ap-northeast-1"
+  }
 }
 
 provider "aws" {
@@ -13,11 +18,11 @@ provider "aws" {
 
 module "storage" {
   source = "../../../module/analyzer/storage"
-  env    = "dev"
+  env    = "sandbox"
 }
 
 module "service" {
   source    = "../../../module/analyzer/service"
-  env       = "dev"
+  env       = "sandbox"
   s3_bucket = module.storage.s3_bucket
 }
