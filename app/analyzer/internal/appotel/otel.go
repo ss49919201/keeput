@@ -12,13 +12,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type typeShutdownTraceProvider = func(context.Context) error
+type typeShutdownProvider = func(context.Context) error
 
-var shutdownTraceProvider typeShutdownTraceProvider
+var shutdownTraceProvider typeShutdownProvider
 var errInitOtelProvider error
 var initOtelProviderOnce sync.Once
 
-func InitTraceProvider(ctx context.Context) (typeShutdownTraceProvider, error) {
+func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initOtelProviderOnce.Do(func() {
 		exporter, err := otlptracehttp.New(ctx,
 			otlptracehttp.WithInsecure(),
@@ -42,6 +42,9 @@ func InitTraceProvider(ctx context.Context) (typeShutdownTraceProvider, error) {
 	})
 	return shutdownTraceProvider, errInitOtelProvider
 }
+
+// TODO
+func InitMeterProvider(ctx context.Context) typeShutdownProvider
 
 func RecordError(ctx context.Context, err error) {
 	trace.SpanFromContext(ctx).RecordError(err, trace.WithStackTrace(true))
