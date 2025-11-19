@@ -15,6 +15,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
 )
 
 func init() {
@@ -59,5 +60,5 @@ func main() {
 			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
 		}
 	}()
-	lambda.Start(otellambda.InstrumentHandler(handleRequest))
+	lambda.Start(otellambda.InstrumentHandler(handleRequest, otellambda.WithPropagator(xray.Propagator{})))
 }
