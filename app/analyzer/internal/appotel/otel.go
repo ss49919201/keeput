@@ -15,7 +15,7 @@ import (
 type typeShutdownProvider = func(context.Context) error
 
 var shutdownTraceProvider typeShutdownProvider
-var errInitOtelProvider error
+var errInitTraceProvider error
 var initOtelProviderOnce sync.Once
 
 func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
@@ -24,12 +24,12 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 			otlptracehttp.WithInsecure(),
 		)
 		if err != nil {
-			errInitOtelProvider = err
+			errInitTraceProvider = err
 			return
 		}
 		resource, err := resource.New(ctx)
 		if err != nil {
-			errInitOtelProvider = err
+			errInitTraceProvider = err
 			return
 		}
 		tp := sdktrace.NewTracerProvider(
@@ -40,7 +40,7 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 		shutdownTraceProvider = tp.Shutdown
 	})
-	return shutdownTraceProvider, errInitOtelProvider
+	return shutdownTraceProvider, errInitTraceProvider
 }
 
 // TODO
