@@ -46,6 +46,15 @@ func run(ctx context.Context) (err error) {
 			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
 		}
 	}()
+	shutdownMeterProvider, err := appotel.InitMeterProvider(ctx)
+	if err != nil {
+		slog.Error("failed to construct otel meter provider", slog.String("error", err.Error()))
+	}
+	defer func() {
+		if err := shutdownMeterProvider(ctx); err != nil {
+			slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
+		}
+	}()
 
 	ctx, span := otel.Tracer(traceName).Start(ctx, "CLI Entrypoint")
 	defer span.End()

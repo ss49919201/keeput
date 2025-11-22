@@ -3,14 +3,12 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appotel"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appslog"
-	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
@@ -20,10 +18,6 @@ import (
 
 func init() {
 	appslog.Init()
-	if err := config.InitForLocal(); err != nil {
-		slog.Error("failed to init env for local", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
 }
 
 func handleRequest(ctx context.Context) (err error) {
@@ -58,6 +52,15 @@ func main() {
 	defer func() {
 		if err := shutdownTraceProvider(ctx); err != nil {
 			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
+		}
+	}()
+	shutdownMeterProvider, err := appotel.InitMeterProvider(ctx)
+	if err != nil {
+		slog.Error("failed to construct otel meter provider", slog.String("error", err.Error()))
+	}
+	defer func() {
+		if err := shutdownMeterProvider(ctx); err != nil {
+			slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
 		}
 	}()
 	lambda.Start(otellambda.InstrumentHandler(handleRequest, otellambda.WithPropagator(xray.Propagator{})))
