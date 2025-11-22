@@ -37,8 +37,7 @@ var (
 	meter                       = otel.Meter(meterName)
 	counterLockAlreadeyAcquried = sync.OnceValue(func() metric.Int64Counter {
 		counter, err := meter.Int64Counter(
-			// TODO
-			"lock",
+			"lock.already_acquired",
 			metric.WithDescription("The number of lock alreadey acquired"),
 		)
 		if err != nil {
