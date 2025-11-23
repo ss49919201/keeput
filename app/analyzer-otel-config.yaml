@@ -9,7 +9,7 @@ exporters:
     endpoint: "https://otlp-vaxila.mackerelio.com"
     headers:
       Accept: "*/*"
-      "Mackerel-Api-Key": ${env:MACKEREL_API_KEY}
+      Mackerel-Api-Key: ${env:MACKEREL_API_KEY}
   otlp/metrics/mackerel:
     endpoint: "https://otlp.mackerelio.com:4317"
     compression: gzip
