@@ -38,9 +38,19 @@ npm run dev
 実動作環境は AWS Lambda を想定しているため、ローカル実行には CLI 用のインターフェースを使用します。
 
 必要な環境変数を `./app/.env` に設定してください。
-雛形は `./app.env.example` にあります。
+雛形は `./app/.env.example` にあります。
 
 ```bash
 cd app
 ENV=local go run analyzer/cmd/cli/main.go
+```
+
+OpenTelemetry 計装を確認する場合には Docker Compose で ADOT コレクターを起動します。
+
+必要な環境変数を `./app/.env.awscollector` に設定してください。
+雛形は `./app/.env.awscollector.example` にあります。
+
+```bash
+cd app
+docker compose up
 ```

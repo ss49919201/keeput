@@ -6,5 +6,6 @@ services:
       - ./analyzer-otel-config.yaml:/etc/otel-config.yaml
     command: ["--config=/etc/otel-config.yaml"]
     ports:
-      - "4317:4317"
-      - "4318:4318"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    env_file: .env.awscollector

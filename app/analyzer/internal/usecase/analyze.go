@@ -28,20 +28,19 @@ func NewAnalyze(fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport p
 }
 
 const (
-	lockIDPrefixAnalyze     = "usecase:analyze"
-	maxExecCountAcquireLock = 3
-	meterName               = "github.com/ss49919201/keeput/app/analyzer/internal/usecase"
+	lockIDPrefixAnalyze = "usecase:analyze"
+	meterName           = "github.com/ss49919201/keeput/app/analyzer/internal/usecase"
 )
 
 var (
-	meter                       = otel.Meter(meterName)
-	counterLockAlreadeyAcquried = sync.OnceValue(func() metric.Int64Counter {
+	meter               = otel.Meter(meterName)
+	counterGoalAchieved = sync.OnceValue(func() metric.Int64Counter {
 		counter, err := meter.Int64Counter(
-			"lock.already_acquired",
-			metric.WithDescription("The number of lock alreadey acquired"),
+			"goal.achieved",
+			metric.WithDescription("The number of goal achieved"),
 		)
 		if err != nil {
-			slog.Error("failed to construct lock alreadey acquired counter", slog.String("error", err.Error()))
+			slog.Error("failed to construct goal achieved counter", slog.String("error", err.Error()))
 		}
 		return counter
 	})
@@ -50,17 +49,12 @@ var (
 func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	// NOTE: defer でのロック解放遅延を analyze のブロックで行いたいため、ロック処理は result.Pipe に含めない
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
-	for execCount := 1; execCount <= maxExecCountAcquireLock; execCount++ {
-		acquired, err := acquireLock(ctx, lockID).Get()
-		if err != nil {
-			return mo.Err[*usecase.AnalyzeOutput](err)
-		}
-		if !acquired {
-			counterLockAlreadeyAcquried().Add(ctx, 1)
-			if execCount == maxExecCountAcquireLock {
-				return mo.Err[*usecase.AnalyzeOutput](errors.New("lock already acquired"))
-			}
-		}
+	acquired, err := acquireLock(ctx, lockID).Get()
+	if err != nil {
+		return mo.Err[*usecase.AnalyzeOutput](err)
+	}
+	if !acquired {
+		return mo.Err[*usecase.AnalyzeOutput](errors.New("lock already acquired"))
 	}
 	defer func() {
 		if err := releaseLock(ctx, lockID); err != nil {
@@ -68,7 +62,7 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fet
 		}
 	}()
 
-	return result.Pipe3(
+	return result.Pipe6(
 		fetchLatestEntry(ctx),
 		result.Map(func(entry mo.Option[*model.Entry]) *model.AnalysisReport {
 			return model.Analyze(entry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
@@ -77,11 +71,23 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fet
 			if err := persistAnalysisReport(ctx, report); err != nil {
 				slog.Warn("failed to persist analysis report", slog.String("error", err.Error()))
 			}
+			return report
+		}),
+		result.Map(func(report *model.AnalysisReport) *model.AnalysisReport {
 			if err := printAnalysisReport(report); err != nil {
 				slog.Warn("failed to print anlysis report", slog.String("error", err.Error()))
 			}
+			return report
+		}),
+		result.Map(func(report *model.AnalysisReport) *model.AnalysisReport {
 			if err := notifyAnalysisReport(ctx, report); err != nil {
 				slog.Warn("failed to notify analysis report", "error", err)
+			}
+			return report
+		}),
+		result.Map(func(report *model.AnalysisReport) *model.AnalysisReport {
+			if report.IsGoalAchieved {
+				counterGoalAchieved().Add(ctx, 1)
 			}
 			return report
 		}),
