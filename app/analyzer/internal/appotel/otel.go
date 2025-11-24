@@ -6,7 +6,8 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -27,7 +28,8 @@ var (
 
 func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initTraceProviderOnce.Do(func() {
-		exporter, err := otlptracehttp.New(ctx,
+		exporter, err := otlptracehttp.New(
+			ctx,
 			otlptracehttp.WithInsecure(),
 		)
 		if err != nil {
@@ -50,10 +52,12 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	return shutdownTraceProvider, errInitTraceProvider
 }
 
-// TODO
 func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initMeterProviderOnce.Do(func() {
-		exporter, err := stdoutmetric.New()
+		exporter, err := otlpmetrichttp.New(
+			ctx,
+			otlpmetrichttp.WithInsecure(),
+		)
 		if err != nil {
 			errInitMeterProvider = err
 			return
