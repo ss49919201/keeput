@@ -6,30 +6,39 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
-type typeShutdownTraceProvider = func(context.Context) error
+type typeShutdownProvider = func(context.Context) error
 
-var shutdownTraceProvider typeShutdownTraceProvider
-var errInitOtelProvider error
-var initOtelProviderOnce sync.Once
+var (
+	shutdownTraceProvider typeShutdownProvider
+	shutdownMeterProvider typeShutdownProvider
+	errInitTraceProvider  error
+	initTraceProviderOnce sync.Once
+	errInitMeterProvider  error
+	initMeterProviderOnce sync.Once
+)
 
-func InitTraceProvider(ctx context.Context) (typeShutdownTraceProvider, error) {
-	initOtelProviderOnce.Do(func() {
-		exporter, err := otlptracehttp.New(ctx,
+func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
+	initTraceProviderOnce.Do(func() {
+		exporter, err := otlptracehttp.New(
+			ctx,
 			otlptracehttp.WithInsecure(),
 		)
 		if err != nil {
-			errInitOtelProvider = err
+			errInitTraceProvider = err
 			return
 		}
 		resource, err := resource.New(ctx)
 		if err != nil {
-			errInitOtelProvider = err
+			errInitTraceProvider = err
 			return
 		}
 		tp := sdktrace.NewTracerProvider(
@@ -40,7 +49,24 @@ func InitTraceProvider(ctx context.Context) (typeShutdownTraceProvider, error) {
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 		shutdownTraceProvider = tp.Shutdown
 	})
-	return shutdownTraceProvider, errInitOtelProvider
+	return shutdownTraceProvider, errInitTraceProvider
+}
+
+func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
+	initMeterProviderOnce.Do(func() {
+		exporter, err := otlpmetrichttp.New(
+			ctx,
+			otlpmetrichttp.WithInsecure(),
+		)
+		if err != nil {
+			errInitMeterProvider = err
+			return
+		}
+		mp := metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(exporter)))
+		otel.SetMeterProvider(mp)
+		shutdownMeterProvider = mp.Shutdown
+	})
+	return shutdownMeterProvider, errInitMeterProvider
 }
 
 func RecordError(ctx context.Context, err error) {

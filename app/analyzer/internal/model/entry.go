@@ -21,6 +21,7 @@ const (
 	GoalTypeRecentMonth GoalType = iota + 1
 )
 
+// 現在日の00:00(JST)から7日遡った日時以降に公開されていれば目標達成とみなす
 func IsGoalAchieved(publishedAt, now time.Time, goalType GoalType) bool {
 	beginningOfToday := date.BeginningOfDay(now)
 	beginningOfBeforeXdays := date.AddDays(

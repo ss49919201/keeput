@@ -20,6 +20,6 @@ RUN --mount=type=secret,id=AWS_ACCESS_KEY_ID,env=AWS_ACCESS_KEY_ID \
 FROM gcr.io/distroless/static-debian12
 WORKDIR /opt
 COPY --from=otelcollectorlayer /opt .
-COPY analyzer_collector_config.yaml /opt/collector-config/config.yaml
+COPY analyzer-otel-config.yaml /opt/collector-config/config.yaml
 COPY --from=build /app/main /main
 ENTRYPOINT [ "/main" ]
