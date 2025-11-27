@@ -12,8 +12,8 @@ jobs:
       run:
         working-directory: ./app/locker
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version-file: ./app/locker/package.json
       - id: wrangler-version
@@ -22,7 +22,7 @@ jobs:
           version=${version#^}
           version=${version#~}
           echo "wranglerVersion=$version" >> "$GITHUB_OUTPUT"
-      - uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
+      - uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           wranglerVersion: ${{ steps.wrangler-version.outputs.wranglerVersion }}
@@ -35,16 +35,16 @@ jobs:
       run:
         working-directory: ./app
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
       - id: configure-aws-credintials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           role-session-name: oidc
           aws-region: ap-northeast-1
           output-credentials: true
       - id: login-ecr
-        uses: aws-actions/amazon-ecr-login@d63b14614fe5d7fc5e5e52c523dea4e876816cc4
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
       - id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -58,7 +58,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       - name: Deploy Lambda function with container image
-        uses: aws-actions/aws-lambda-deploy@29ea35c124579506cf0475e20df36198eb670d89
+        uses: aws-actions/aws-lambda-deploy@29ea35c124579506cf0475e20df36198eb670d89 # v1.1.0
         with:
           function-name: keeput-analyzer-prod
           package-type: Image
