@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/samber/lo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appctx"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appotel"
 	"github.com/ss49919201/keeput/app/analyzer/internal/appslog"
@@ -20,7 +21,25 @@ func init() {
 	appslog.Init()
 }
 
-func handleRequest(ctx context.Context) (err error) {
+type goalType string
+
+const (
+	goalTypeRecentWeek  goalType = "recent_week"
+	goalTypeRecentMonth goalType = "recent_month"
+)
+
+type payload struct {
+	GoalType goalType
+}
+
+func parseGoalType(typ goalType) model.GoalType {
+	return lo.Switch[goalType, model.GoalType](typ).
+		Case(goalTypeRecentWeek, model.GoalTypeRecentWeek).
+		Case(goalTypeRecentMonth, model.GoalTypeRecentMonth).
+		Default(model.GoalTypeRecentWeek)
+}
+
+func handleRequest(ctx context.Context, payload payload) (err error) {
 	defer func() {
 		if err != nil {
 			appotel.RecordError(ctx, err)
@@ -34,7 +53,7 @@ func handleRequest(ctx context.Context) (err error) {
 		return err
 	}
 	result := analyze(ctx, &usecase.AnalyzeInput{
-		Goal: model.GoalTypeRecentWeek,
+		Goal: parseGoalType(payload.GoalType),
 	})
 	if result.IsError() {
 		return result.Error()
