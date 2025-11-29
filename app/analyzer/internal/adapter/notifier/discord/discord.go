@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/samber/lo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/apphttp"
 	"github.com/ss49919201/keeput/app/analyzer/internal/config"
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
@@ -57,8 +58,9 @@ func notifyAnalysisReport(ctx context.Context, webhookURL string, report *model.
 }
 
 func buildMessage(report *model.AnalysisReport) string {
-	if report.IsGoalAchieved {
-		return "目標達成です🎊よく頑張りました！"
-	}
-	return "目標未達です😢これから頑張りましょう！"
+	return lo.Ternary(
+		report.IsGoalAchieved,
+		"目標達成です🎊よく頑張りました！",
+		"目標未達です😢これから頑張りましょう！",
+	)
 }
