@@ -48,7 +48,7 @@ jobs:
           version: v1.4.1
       - env:
           FUNCTION_NAME: keeput-analyzer-prod
-          TFSTATE_UsRL: s3://keeput-tf-state/production/analyzer/service/terraform.tfstate
+          TFSTATE_UsRL: "s3://keeput-tf-state/production/analyzer/service/terraform.tfstate"
           ECR_REPOSITORY: keeput-analyzer-lambda-prod
           IMAGE_TAG: ${{ github.sha }}
           AWS_ACCESS_KEY_ID: ${{ steps.configure-aws-credintials.outputs.aws-access-key-id }}
