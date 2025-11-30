@@ -43,7 +43,7 @@ jobs:
           role-session-name: oidc
           aws-region: ap-northeast-1
           output-credentials: true
-      - uses: fujiwara/lambroll@15e5abbb9d301d85ae0fda6449c5e59e509494a5 # v1.4.1
+      - uses: fujiwara/lambroll@v1
         with:
           version: 1.4.1
       - env:
