@@ -43,9 +43,9 @@ jobs:
           role-session-name: oidc
           aws-region: ap-northeast-1
           output-credentials: true
-      - uses: fujiwara/lambroll@v1
+      - uses: fujiwara/lambroll@15e5abbb9d301d85ae0fda6449c5e59e509494a5 # v1.4.1
         with:
-          version: 1.4.1
+          version: v1.4.1
       - env:
           FUNCTION_NAME: keeput-analyzer-prod
           ECR_REPOSITORY: keeput-analyzer-lambda-prod
