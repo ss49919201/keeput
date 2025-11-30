@@ -54,3 +54,20 @@ OpenTelemetry 計装を確認する場合には Docker Compose で ADOT コレ�
 cd app
 docker compose up
 ```
+
+# サンドボックス環境
+
+AWS リソースをサンドボックス環境にデプロイすることでリモート実行を確認できます。
+
+```bash
+cd infra/env/sandbox
+terraform init
+terraform apply
+```
+
+Lambda 関数のデプロイは make コマンドで行います。
+
+```bash
+cd app
+make deploy-analyzer
+```

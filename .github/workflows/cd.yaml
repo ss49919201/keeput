@@ -43,23 +43,15 @@ jobs:
           role-session-name: oidc
           aws-region: ap-northeast-1
           output-credentials: true
-      - id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-      - id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      - uses: fujiwara/lambroll@15e5abbb9d301d85ae0fda6449c5e59e509494a5 # v1.4.1
+        with:
+          version: 1.4.1
+      - env:
+          FUNCTION_NAME: keeput-analyzer-prod
           ECR_REPOSITORY: keeput-analyzer-lambda-prod
           IMAGE_TAG: ${{ github.sha }}
           AWS_ACCESS_KEY_ID: ${{ steps.configure-aws-credintials.outputs.aws-access-key-id }}
           AWS_SECRET_ACCESS_KEY: ${{ steps.configure-aws-credintials.outputs.aws-secret-access-key }}
           AWS_SESSION_TOKEN: ${{ steps.configure-aws-credintials.outputs.aws-session-token }}
         run: |
-          docker buildx build -f Dockerfile.Analyzer --platform linux/amd64 --secret type=env,id=AWS_ACCESS_KEY_ID,env=AWS_ACCESS_KEY_ID --secret type=env,id=AWS_SECRET_ACCESS_KEY,env=AWS_SECRET_ACCESS_KEY --secret type=env,id=AWS_SESSION_TOKEN,env=AWS_SESSION_TOKEN --provenance=false -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-      - name: Deploy Lambda function with container image
-        uses: aws-actions/aws-lambda-deploy@29ea35c124579506cf0475e20df36198eb670d89 # v1.1.0
-        with:
-          function-name: keeput-analyzer-prod
-          package-type: Image
-          image-uri: ${{ steps.build-image.outputs.image }}
+          FUNCTION_NAME=$FUNCTION_NAME ANALYZER_REPOSITORY=$ECR_REPOSITORY ANALYZER_IMAGE_TAG=$IMAGE_TAG make deploy-analyzer
