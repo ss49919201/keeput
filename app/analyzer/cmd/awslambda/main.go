@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -15,10 +16,30 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/registory"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
+	"go.opentelemetry.io/otel"
 )
 
 func init() {
 	appslog.Init()
+}
+
+type forceFlusher struct{}
+
+var _ otellambda.Flusher = (*forceFlusher)(nil)
+
+func (f *forceFlusher) ForceFlush(ctx context.Context) error {
+	var errs []error
+	for _, provider := range []any{
+		otel.GetTracerProvider(),
+		otel.GetMeterProvider(),
+	} {
+		if flusher, ok := provider.(otellambda.Flusher); ok {
+			if err := flusher.ForceFlush(ctx); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+	return errors.Join(errs...)
 }
 
 type goalType string
@@ -82,5 +103,11 @@ func main() {
 			slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
 		}
 	}()
-	lambda.Start(otellambda.InstrumentHandler(handleRequest, otellambda.WithPropagator(xray.Propagator{})))
+	lambda.Start(
+		otellambda.InstrumentHandler(
+			handleRequest,
+			otellambda.WithPropagator(xray.Propagator{}),
+			otellambda.WithFlusher(&forceFlusher{}),
+		),
+	)
 }
