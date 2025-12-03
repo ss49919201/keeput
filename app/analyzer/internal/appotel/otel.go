@@ -42,7 +42,7 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 			return
 		}
 		tp := sdktrace.NewTracerProvider(
-			sdktrace.WithSyncer(exporter),
+			sdktrace.WithBatcher(exporter),
 			sdktrace.WithResource(resource),
 		)
 		otel.SetTracerProvider(tp)
