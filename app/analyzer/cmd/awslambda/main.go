@@ -29,16 +29,21 @@ var _ otellambda.Flusher = (*forceFlusher)(nil)
 
 func (f *forceFlusher) ForceFlush(ctx context.Context) error {
 	var errs []error
-	for _, provider := range []any{
-		otel.GetTracerProvider(),
-		otel.GetMeterProvider(),
-	} {
-		if flusher, ok := provider.(otellambda.Flusher); ok {
+
+	if flusher, ok := otel.GetTracerProvider().(otellambda.Flusher); ok {
 			if err := flusher.ForceFlush(ctx); err != nil {
 				errs = append(errs, err)
 			}
 		}
+	slog.Debug("trace provider has completed flushing")
+
+	if flusher, ok := otel.GetMeterProvider().(otellambda.Flusher); ok {
+		if err := flusher.ForceFlush(ctx); err != nil {
+			errs = append(errs, err)
+		}
 	}
+	slog.Debug("meter provider has completed flushing")
+
 	return errors.Join(errs...)
 }
 
