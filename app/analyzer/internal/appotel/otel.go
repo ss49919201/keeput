@@ -6,16 +6,18 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type typeShutdownProvider = func(context.Context) error
+type typeFlushMetrics = func(context.Context) error
 
 var (
 	shutdownTraceProvider typeShutdownProvider
@@ -24,6 +26,7 @@ var (
 	initTraceProviderOnce sync.Once
 	errInitMeterProvider  error
 	initMeterProviderOnce sync.Once
+	flushMetrics          typeFlushMetrics
 )
 
 func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
@@ -52,21 +55,33 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	return shutdownTraceProvider, errInitTraceProvider
 }
 
+// MetricReader は ManualReader なのでオンデマンドに収集、送出が必要
 func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initMeterProviderOnce.Do(func() {
-		exporter, err := otlpmetrichttp.New(
-			ctx,
-			otlpmetrichttp.WithInsecure(),
-		)
-		if err != nil {
-			errInitMeterProvider = err
-			return
-		}
-		mp := metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(exporter)))
+		reader := metric.NewManualReader()
+		mp := metric.NewMeterProvider(metric.WithReader(reader))
 		otel.SetMeterProvider(mp)
 		shutdownMeterProvider = mp.Shutdown
+		// TODO
+		flushMetrics = func(ctx context.Context) error {
+			var resource metricdata.ResourceMetrics
+			reader.Collect(ctx, &metricdata.ResourceMetrics{})
+			exporter, err := stdoutmetric.New()
+			if err != nil {
+				return err
+			}
+			return exporter.Export(ctx, &resource)
+		}
 	})
 	return shutdownMeterProvider, errInitMeterProvider
+}
+
+func FlushMetrics(ctx context.Context) error {
+	_, err := InitMeterProvider(ctx)
+	if err != nil {
+		return err
+	}
+	return flushMetrics(ctx)
 }
 
 func RecordError(ctx context.Context, err error) {
