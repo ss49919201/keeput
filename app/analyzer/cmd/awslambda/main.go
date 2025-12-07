@@ -31,17 +31,17 @@ func (f *forceFlusher) ForceFlush(ctx context.Context) error {
 	var errs []error
 
 	if flusher, ok := otel.GetTracerProvider().(otellambda.Flusher); ok {
-			if err := flusher.ForceFlush(ctx); err != nil {
-				errs = append(errs, err)
+		if err := flusher.ForceFlush(ctx); err != nil {
+			errs = append(errs, err)
 		} else {
-	slog.Debug("trace provider has completed flushing")
+			slog.Debug("trace provider has completed flushing")
 		}
 	}
 
 	if err := appotel.FlushMetrics(ctx); err != nil {
 		errs = append(errs, err)
 	} else {
-	slog.Debug("meter provider has completed flushing")
+		slog.Debug("meter provider has completed flushing")
 	}
 
 	return errors.Join(errs...)
@@ -94,25 +94,23 @@ func main() {
 	if err != nil {
 		slog.Error("failed to construct otel trace provider", slog.String("error", err.Error()))
 	}
-	defer func() {
-		if err := shutdownTraceProvider(ctx); err != nil {
-			slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
-		}
-	}()
 	shutdownMeterProvider, err := appotel.InitMeterProvider(ctx)
 	if err != nil {
 		slog.Error("failed to construct otel meter provider", slog.String("error", err.Error()))
 	}
-	defer func() {
-		if err := shutdownMeterProvider(ctx); err != nil {
-			slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
-		}
-	}()
-	lambda.Start(
+	lambda.StartWithOptions(
 		otellambda.InstrumentHandler(
 			handleRequest,
 			otellambda.WithPropagator(xray.Propagator{}),
 			otellambda.WithFlusher(&forceFlusher{}),
 		),
+		lambda.WithEnableSIGTERM(func() {
+			if err := shutdownMeterProvider(ctx); err != nil {
+				slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
+			}
+			if err := shutdownTraceProvider(ctx); err != nil {
+				slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
+			}
+		}),
 	)
 }
