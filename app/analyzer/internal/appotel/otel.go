@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -55,19 +55,24 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	return shutdownTraceProvider, errInitTraceProvider
 }
 
-// MetricReader は ManualReader なのでオンデマンドに収集、送出が必要
+// MetricReader は ManualReader なので FlushMetrics を実行してオンデマンドに収集、送出が必要
 func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initMeterProviderOnce.Do(func() {
+		exporter, err := otlpmetrichttp.New(
+			ctx,
+			otlpmetrichttp.WithInsecure(),
+		)
+		if err != nil {
+			errInitMeterProvider = err
+			return
+		}
 		reader := metric.NewManualReader()
 		mp := metric.NewMeterProvider(metric.WithReader(reader))
 		otel.SetMeterProvider(mp)
 		shutdownMeterProvider = mp.Shutdown
-		// TODO
 		flushMetrics = func(ctx context.Context) error {
 			var resource metricdata.ResourceMetrics
-			reader.Collect(ctx, &metricdata.ResourceMetrics{})
-			exporter, err := stdoutmetric.New()
-			if err != nil {
+			if err := reader.Collect(ctx, &resource); err != nil {
 				return err
 			}
 			return exporter.Export(ctx, &resource)
