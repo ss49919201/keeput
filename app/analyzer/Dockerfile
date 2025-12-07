@@ -1,10 +1,10 @@
-FROM golang:1.25.5-alpine3.22 AS build
+FROM golang:1.25.5-alpine3.23 AS build
 WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
-RUN go build -ldflags '-w' -trimpath -o main ./cmd/awslambda/main.go
+COPY analyzer ./analyzer
+RUN go build -ldflags '-w' -trimpath -o main ./analyzer/cmd/awslambda/main.go
 
 FROM amazon/aws-cli AS otelcollectorlayer
 ARG LAYER_ARN=arn:aws:lambda:ap-northeast-1:901920570463:layer:aws-otel-collector-amd64-ver-0-117-0:1
