@@ -1,12 +1,28 @@
 name: CD
 on:
   push:
-    branches: [main]
+    branches: [main, issue-90]
 permissions:
   id-token: write
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      locker: ${{ steps.filter.outputs.locker }}
+    steps:
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          locker:
+            - 'app/locker/**'
+
   deploy-locker:
+    needs: changes
+    if: ${{ needs.changes.outputs.locker == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
