@@ -13,12 +13,12 @@ jobs:
     outputs:
       locker: ${{ steps.filter.outputs.locker }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
-      - uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            locker:
-              - 'app/locker/**'
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
+    - uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          locker:
+            - 'app/locker/**'
 
   deploy-locker:
     needs: changes
@@ -46,6 +46,7 @@ jobs:
 
   deploy-analyzer:
     needs: deploy-locker
+    if: always()
     runs-on: ubuntu-latest
     defaults:
       run:
