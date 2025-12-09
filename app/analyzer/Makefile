@@ -18,7 +18,7 @@ lint-go:
 
 .PHONY: build-analyzer
 build-analyzer:
-	docker buildx build -f Dockerfile.Analyzer --platform linux/amd64 \
+	docker buildx build --platform linux/amd64 \
 	--secret type=env,id=AWS_ACCESS_KEY_ID,env=AWS_ACCESS_KEY_ID \
 	--secret type=env,id=AWS_SECRET_ACCESS_KEY,env=AWS_SECRET_ACCESS_KEY \
 	--secret type=env,id=AWS_SESSION_TOKEN,env=AWS_SESSION_TOKEN \

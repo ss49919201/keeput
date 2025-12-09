@@ -1,4 +1,4 @@
-module github.com/ss49919201/keeput/app
+module github.com/ss49919201/keeput/app/analyzer
 
 go 1.25.1
 
