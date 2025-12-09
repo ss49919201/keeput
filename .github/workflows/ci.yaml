@@ -9,7 +9,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: app
+        working-directory: ./app/analyzer
     permissions:
       contents: read
       pull-requests: write
@@ -20,14 +20,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
-          go-version-file: ./app/go.mod
+          go-version-file: ./app/analyzer/go.mod
       - name: Run lint
         run: make lint-go
   go-std-test:
     defaults:
       run:
         shell: bash
-        working-directory: app
+        working-directory: ./app/analyzer
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,6 +35,6 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
-          go-version-file: ./app/go.mod
+          go-version-file: ./app/analyzer/go.mod
       - name: Run test
         run: make test-go
