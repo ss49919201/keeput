@@ -20,10 +20,13 @@ type typeShutdownProvider = func(context.Context) error
 type typeFlushMetrics = func(context.Context) error
 
 var (
+	// TraceProvider
 	shutdownTraceProvider typeShutdownProvider
-	shutdownMeterProvider typeShutdownProvider
 	errInitTraceProvider  error
 	initTraceProviderOnce sync.Once
+
+	// MEterProvider
+	shutdownMeterProvider typeShutdownProvider
 	errInitMeterProvider  error
 	initMeterProviderOnce sync.Once
 	flushMetrics          typeFlushMetrics
