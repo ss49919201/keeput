@@ -55,7 +55,7 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	return shutdownTraceProvider, errInitTraceProvider
 }
 
-// MetricReader は ManualReader なので FlushMetrics を実行してオンデマンドに収集、送出が必要
+// NOTE: MetricReader は ManualReader なので FlushMetrics を実行してオンデマンドに収集、送出が必要
 func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initMeterProviderOnce.Do(func() {
 		exporter, err := otlpmetrichttp.New(
