@@ -19,6 +19,8 @@ jobs:
         filters: |
           locker:
             - 'app/locker/**'
+          analyzer:
+            - 'app/analyzer/**'         
 
   deploy-locker:
     needs: changes
@@ -46,7 +48,7 @@ jobs:
 
   deploy-analyzer:
     needs: deploy-locker
-    if: always()
+    if: ${{ needs.changes.outputs.analyzer == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
