@@ -47,7 +47,7 @@ jobs:
           workingDirectory: ./app/locker
 
   deploy-analyzer:
-    needs: deploy-locker
+    needs: [changes, deploy-locker]
     if: ${{ needs.changes.outputs.analyzer == 'true' }}
     runs-on: ubuntu-latest
     defaults:
