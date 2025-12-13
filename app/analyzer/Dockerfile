@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
-COPY analyzer ./analyzer
+COPY . .
 RUN go build -ldflags '-w' -trimpath -o main ./analyzer/cmd/awslambda/main.go
 
 FROM amazon/aws-cli AS otelcollectorlayer
