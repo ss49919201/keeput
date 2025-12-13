@@ -50,7 +50,7 @@ jobs:
 
   deploy-analyzer:
     needs: [changes, deploy-locker]
-    if: always()
+    if: (always()) && (${{ needs.changes.outputs.analyzer == 'true' }})
     runs-on: ubuntu-latest
     defaults:
       run:
