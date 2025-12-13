@@ -122,13 +122,11 @@ resource "aws_lambda_function" "analyzer_lambda" {
       MACKEREL_API_KEY                 = data.aws_ssm_parameter.mackerel_api_key.value
     }
   }
+  image_uri = "${aws_ecr_repository.analyzer_lambda.repository_url}:dummy"
 
   # NOTE: イメージ、関数の更新はアプリケーションのライフサイクルで行うため更新を無視する
-  image_uri = "${aws_ecr_repository.analyzer_lambda.repository_url}:dummy"
   lifecycle {
-    ignore_changes = [
-      image_uri
-    ]
+    ignore_changes = all
   }
 }
 

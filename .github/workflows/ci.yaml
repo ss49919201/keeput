@@ -5,11 +5,11 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  golangci-lint:
+  analyzer-lint:
     defaults:
       run:
         shell: bash
-        working-directory: app
+        working-directory: ./app/analyzer
     permissions:
       contents: read
       pull-requests: write
@@ -20,14 +20,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
-          go-version-file: ./app/go.mod
+          go-version-file: ./app/analyzer/go.mod
       - name: Run lint
-        run: make lint-go
-  go-std-test:
+        run: make lint
+  analyzer-test:
     defaults:
       run:
         shell: bash
-        working-directory: app
+        working-directory: ./app/analyzer
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,6 +35,6 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
-          go-version-file: ./app/go.mod
+          go-version-file: ./app/analyzer/go.mod
       - name: Run test
-        run: make test-go
+        run: make test

@@ -1,0 +1,39 @@
+{
+  "Architectures": [
+    "x86_64"
+  ],
+  "Code": {
+    "ImageUri": "{{ must_env `IMAGE_URI` }}"
+  },
+  "Environment": {
+    "Variables": {
+      "DISCORD_WEBHOOK_URL": "{{ ssm `/keeput/analyzer/discord-webhook-url` }}",
+      "MACKEREL_API_KEY": "{{ ssm `/keeput/mackerel-api-key` }}",
+      "LOG_LEVEL": "{{ env `LOG_LEVEL` `WARN`}}",
+      "LOCKER_API_KEY_CLOUDFLARE_WORKER": "{{ ssm `/keeput/locker/api-key-cloudflare-worker` }}",
+      "LOCKER_URL_CLOUDFLARE_WORKER": "{{ env `LOCKER_URL_CLOUDFLARE_WORKER` `https://keeput-locker.ss49919201.workers.dev` }}",
+      "FEED_URL_HATENA": "{{ env `FEED_URL_HATENA` `https://ss49919201.hatenablog.com/rss` }}",
+      "FEED_URL_ZENN": "{{ env `FEED_URL_ZENN` `https://zenn.dev/ss49919201/feed` }}",
+      "OTEL_SERVICE_NAME": "{{ env `OTEL_SERVICE_NAME` `keeput-sandbox`}}",
+      "S3_BUCKET_NAME": "{{ env `S3_BUCKET_NAME` `keeput-analyzer-sandbox`}}"
+    }
+  },
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "FunctionName": "{{ must_env `FUNCTION_NAME` }}",
+  "LoggingConfig": {
+    "LogFormat": "Text",
+    "LogGroup": "/aws/lambda/{{ must_env `FUNCTION_NAME` }}"
+  },
+  "MemorySize": 256,
+  "PackageType": "Image",
+  "Role": "{{ tfstate `module.service.aws_iam_role.analyzer_lambda.arn` }}",
+  "SnapStart": {
+    "ApplyOn": "None"
+  },
+  "Timeout": 60,
+  "TracingConfig": {
+    "Mode": "PassThrough"
+  }
+}
