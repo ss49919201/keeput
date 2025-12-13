@@ -76,4 +76,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ steps.configure-aws-credintials.outputs.aws-secret-access-key }}
           AWS_SESSION_TOKEN: ${{ steps.configure-aws-credintials.outputs.aws-session-token }}
         run: |
-          ANALYZER_FUNCTION_NAME=$FUNCTION_NAME ANALYZER_REPOSITORY=$ECR_REPOSITORY ANALYZER_IMAGE_TAG=$IMAGE_TAG ANALYZER_LAMBROLL_TFSTATE_URL=$TFSTATE_URL make deploy-analyzer
+          FUNCTION_NAME=$FUNCTION_NAME REPOSITORY=$ECR_REPOSITORY IMAGE_TAG=$IMAGE_TAG LAMBROLL_TFSTATE_URL=$TFSTATE_URL make deploy
