@@ -1,7 +1,7 @@
 name: CD
 on:
   push:
-    branches: [main, issue-90]
+    branches: [main]
 permissions:
   id-token: write
 
@@ -26,7 +26,7 @@ jobs:
 
   deploy-locker:
     needs: changes
-    if: ${{ needs.changes.outputs.locker == 'true' }}
+    if: needs.changes.outputs.locker == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
