@@ -50,7 +50,7 @@ jobs:
 
   deploy-analyzer:
     needs: [changes, deploy-locker]
-    if: (always()) && (${{ needs.changes.outputs.analyzer == 'true' }})
+    if: always() && ${{ needs.changes.outputs.analyzer == 'true' }} && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled'))
     runs-on: ubuntu-latest
     defaults:
       run:
