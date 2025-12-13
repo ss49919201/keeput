@@ -25,7 +25,7 @@ var (
 	errInitTraceProvider  error
 	initTraceProviderOnce sync.Once
 
-	// MEterProvider
+	// MeterProvider
 	shutdownMeterProvider typeShutdownProvider
 	errInitMeterProvider  error
 	initMeterProviderOnce sync.Once
