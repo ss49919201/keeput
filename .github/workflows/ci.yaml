@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  golangci-lint:
+  analyzer-lint:
     defaults:
       run:
         shell: bash
@@ -22,8 +22,8 @@ jobs:
         with:
           go-version-file: ./app/analyzer/go.mod
       - name: Run lint
-        run: make lint-go
-  go-std-test:
+        run: make lint
+  analyzer-test:
     defaults:
       run:
         shell: bash
@@ -37,4 +37,4 @@ jobs:
         with:
           go-version-file: ./app/analyzer/go.mod
       - name: Run test
-        run: make test-go
+        run: make test

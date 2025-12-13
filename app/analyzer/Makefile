@@ -5,14 +5,14 @@ ANALYZER_IMAGE_TAG ?= latest
 ANALYZER_IMAGE ?= ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ANALYZER_REPOSITORY}:${ANALYZER_IMAGE_TAG}
 ANALYZER_LAMBROLL_TFSTATE_URL ?= s3://keeput-tf-state/sandbox/analyzer/service/terraform.tfstate
 
-.PHONY: test-go
-test-go:
-	go test ./analyzer/...
+.PHONY: test
+test:
+	go test ./...
 
 # NOTE: golangci-lint はバイナリインストールが推奨されている
 # https://golangci-lint.run/docs/welcome/install/#install-from-sources
-.PHONY: lint-go
-lint-go:
+.PHONY: lint
+lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v2.4.0
 	golangci-lint run
 
