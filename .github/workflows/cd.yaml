@@ -51,12 +51,14 @@ jobs:
   deploy-analyzer:
     needs: [changes, deploy-locker]
     # if: always() && ${{ needs.changes.outputs.analyzer == 'true' }} && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled'))
-    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && ${{ needs.changes.outputs.analyzer == 'true' }}
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./app/analyzer
     steps:
+      - run: echo ${{ needs.changes.outputs.analyzer == 'true' }}
+      - run: echo ${{ needs.changes.outputs.analyzer }}
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
       - id: configure-aws-credintials
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
