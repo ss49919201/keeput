@@ -22,7 +22,7 @@ jobs:
           locker:
             - 'app/locker/**'
           analyzer:
-            - 'app/analyzer/**'         
+            - 'app/analyzer/**'
 
   deploy-locker:
     needs: changes
