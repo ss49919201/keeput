@@ -77,3 +77,6 @@ func EntryPlatformIteratorOrderByPriorityAsc() iter.Seq[*EntryPlatform] {
 		}
 	}
 }
+
+// TOOD
+func Sort(entries []*Entry) []*Entry
