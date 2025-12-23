@@ -2,16 +2,19 @@ package model
 
 import (
 	"iter"
+	"slices"
 	"time"
 
 	"github.com/samber/lo"
+	"github.com/samber/mo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/date"
 )
 
 type Entry struct {
-	Title       string
-	Body        string
-	PublishedAt time.Time
+	Title        string
+	Body         string
+	PublishedAt  time.Time
+	PlatformType EntryPlatformType
 }
 
 type GoalType int
@@ -78,5 +81,14 @@ func EntryPlatformIteratorOrderByPriorityAsc() iter.Seq[*EntryPlatform] {
 	}
 }
 
-// TOOD
-func Sort(entries []*Entry) []*Entry
+// TOOD: Rename
+func Latest(entries []*Entry) mo.Option[*Entry] {
+	if len(entries) < 1 {
+		return mo.None[*Entry]()
+	}
+	cloned := slices.Clone(entries)
+	slices.SortFunc(cloned, func(a, b *Entry) int {
+		return 0
+	})
+	return mo.Some(cloned[0])
+}
