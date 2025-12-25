@@ -39,10 +39,6 @@ func IsGoalAchieved(publishedAt, now time.Time, goalType GoalType) bool {
 
 type EntryPlatformType int
 
-func (e EntryPlatformType) IsZero() bool {
-	return e == EntryPlatformTypeZero
-}
-
 const (
 	EntryPlatformTypeZero EntryPlatformType = iota
 	EntryPlatformTypeZenn
