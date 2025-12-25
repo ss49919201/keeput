@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/samber/mo"
 )
 
 func TestEntryPlatformIteratorOrderByPriorityAsc(t *testing.T) {
@@ -73,6 +75,38 @@ func TestIsGoalAchieved(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := IsGoalAchieved(tt.args.publishedAt, tt.args.now, tt.args.goalType); got != tt.want {
 				t.Errorf("IsGoalAchieved() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLatest(t *testing.T) {
+	tests := []struct {
+		name    string
+		entries []*Entry
+		want    mo.Option[*Entry]
+	}{
+		{
+			"returns latest entry when timestampls differ",
+			nil,
+			mo.Some(&Entry{}),
+		},
+		{
+			"returns higher priority when timestamps same",
+			nil,
+			mo.Some(&Entry{}),
+		},
+		{
+			"returns none when entries slice is empty",
+			nil,
+			mo.Some(&Entry{}),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Latest(tt.entries)
+			if true {
+				t.Errorf("Latest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
