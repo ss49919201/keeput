@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cmp"
 	"iter"
 	"slices"
 	"time"
@@ -11,10 +12,10 @@ import (
 )
 
 type Entry struct {
-	Title        string
-	Body         string
-	PublishedAt  time.Time
-	PlatformType EntryPlatformType
+	Title       string
+	Body        string
+	PublishedAt time.Time
+	Platform    EntryPlatform
 }
 
 type GoalType int
@@ -46,24 +47,20 @@ const (
 )
 
 type EntryPlatform struct {
-	entryPlatformType EntryPlatformType
-	priority          int
-}
-
-func (e *EntryPlatform) Type() EntryPlatformType {
-	return e.entryPlatformType
+	Type     EntryPlatformType
+	Priority int
 }
 
 // DANGER: 再代入禁止
 // 要素の順序は優先度の昇順
 var entryPlatforms = []*EntryPlatform{
 	{
-		entryPlatformType: EntryPlatformTypeHatena,
-		priority:          1,
+		Type:     EntryPlatformTypeHatena,
+		Priority: 1,
 	},
 	{
-		entryPlatformType: EntryPlatformTypeZenn,
-		priority:          2,
+		Type:     EntryPlatformTypeZenn,
+		Priority: 2,
 	},
 }
 
@@ -77,14 +74,17 @@ func EntryPlatformIteratorOrderByPriorityAsc() iter.Seq[*EntryPlatform] {
 	}
 }
 
-// TOOD: Rename
 func Latest(entries []*Entry) mo.Option[*Entry] {
 	if len(entries) < 1 {
 		return mo.None[*Entry]()
 	}
 	cloned := slices.Clone(entries)
 	slices.SortFunc(cloned, func(a, b *Entry) int {
-		return 0
+		p1 := b.PublishedAt.Compare(a.PublishedAt)
+		if p1 != 0 {
+			return p1
+		}
+		return cmp.Compare(a.Platform.Priority, b.Platform.Priority)
 	})
 	return mo.Some(cloned[0])
 }

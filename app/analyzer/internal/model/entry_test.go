@@ -5,13 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/samber/mo"
+	"github.com/ss49919201/keeput/app/analyzer/internal/date"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEntryPlatformIteratorOrderByPriorityAsc(t *testing.T) {
 	types := []EntryPlatformType{}
 	for ep := range EntryPlatformIteratorOrderByPriorityAsc() {
-		types = append(types, ep.Type())
+		types = append(types, ep.Type)
 	}
 
 	expect := []EntryPlatformType{
@@ -81,6 +84,25 @@ func TestIsGoalAchieved(t *testing.T) {
 }
 
 func TestLatest(t *testing.T) {
+	entryHatena := Entry{
+		Title:       "Rustを学ぶ",
+		Body:        "Rustには所有権という概念があります",
+		PublishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST())),
+		Platform: EntryPlatform{
+			Type:     EntryPlatformTypeHatena,
+			Priority: 1,
+		},
+	}
+	entryZenn := Entry{
+		Title:       "Haskellを学ぶ",
+		Body:        "Haskellは関数型言語です",
+		PublishedAt: time.Date(2025, 1, 2, 12, 0, 0, 0, lo.ToPtr(date.LocationJST())),
+		Platform: EntryPlatform{
+			Type:     EntryPlatformTypeZenn,
+			Priority: 2,
+		},
+	}
+
 	tests := []struct {
 		name    string
 		entries []*Entry
@@ -88,26 +110,30 @@ func TestLatest(t *testing.T) {
 	}{
 		{
 			"returns latest entry when timestampls differ",
-			nil,
-			mo.Some(&Entry{}),
+			[]*Entry{
+				&entryHatena,
+				&entryZenn,
+			},
+			mo.Some(&entryZenn),
 		},
 		{
 			"returns higher priority when timestamps same",
-			nil,
-			mo.Some(&Entry{}),
+			[]*Entry{
+				&entryHatena,
+				&entryZenn,
+			},
+			mo.Some(&entryZenn),
 		},
 		{
 			"returns none when entries slice is empty",
-			nil,
-			mo.Some(&Entry{}),
+			[]*Entry{},
+			mo.None[*Entry](),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := Latest(tt.entries)
-			if true {
-				t.Errorf("Latest() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

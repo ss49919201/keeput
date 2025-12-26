@@ -20,7 +20,7 @@ import (
 func NewAnalyzeUsecase(ctx context.Context) (usecaseport.Analyze, error) {
 	var entryPlatformType model.EntryPlatformType
 	for entryPlatform := range model.EntryPlatformIteratorOrderByPriorityAsc() {
-		entryPlatformType = entryPlatform.Type()
+		entryPlatformType = entryPlatform.Type
 		break
 	}
 
