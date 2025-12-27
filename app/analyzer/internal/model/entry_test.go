@@ -1,4 +1,4 @@
-package model
+package model_test
 
 import (
 	"reflect"
@@ -8,18 +8,19 @@ import (
 	"github.com/samber/lo"
 	"github.com/samber/mo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/date"
+	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEntryPlatformIteratorOrderByPriorityAsc(t *testing.T) {
-	types := []EntryPlatformType{}
-	for ep := range EntryPlatformIteratorOrderByPriorityAsc() {
+	types := []model.EntryPlatformType{}
+	for ep := range model.EntryPlatformIteratorOrderByPriorityAsc() {
 		types = append(types, ep.Type)
 	}
 
-	expect := []EntryPlatformType{
-		EntryPlatformTypeHatena,
-		EntryPlatformTypeZenn,
+	expect := []model.EntryPlatformType{
+		model.EntryPlatformTypeHatena,
+		model.EntryPlatformTypeZenn,
 	}
 	if !reflect.DeepEqual(types, expect) {
 		t.Errorf("expect %v, actual %v", expect, types)
@@ -30,7 +31,7 @@ func TestIsGoalAchieved(t *testing.T) {
 	type args struct {
 		publishedAt time.Time
 		now         time.Time
-		goalType    GoalType
+		goalType    model.GoalType
 	}
 	tests := []struct {
 		name string
@@ -42,7 +43,7 @@ func TestIsGoalAchieved(t *testing.T) {
 			args{
 				time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC),
-				GoalTypeRecentWeek,
+				model.GoalTypeRecentWeek,
 			},
 			false,
 		},
@@ -51,7 +52,7 @@ func TestIsGoalAchieved(t *testing.T) {
 			args{
 				time.Date(2025, 1, 3, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC),
-				GoalTypeRecentWeek,
+				model.GoalTypeRecentWeek,
 			},
 			true,
 		},
@@ -60,7 +61,7 @@ func TestIsGoalAchieved(t *testing.T) {
 			args{
 				time.Date(2025, 8, 1, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 8, 31, 0, 0, 0, 0, time.UTC),
-				GoalTypeRecentMonth,
+				model.GoalTypeRecentMonth,
 			},
 			true,
 		},
@@ -69,14 +70,14 @@ func TestIsGoalAchieved(t *testing.T) {
 			args{
 				time.Date(2025, 7, 31, 0, 0, 0, 0, time.UTC),
 				time.Date(2025, 8, 31, 0, 0, 0, 0, time.UTC),
-				GoalTypeRecentMonth,
+				model.GoalTypeRecentMonth,
 			},
 			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsGoalAchieved(tt.args.publishedAt, tt.args.now, tt.args.goalType); got != tt.want {
+			if got := model.IsGoalAchieved(tt.args.publishedAt, tt.args.now, tt.args.goalType); got != tt.want {
 				t.Errorf("IsGoalAchieved() = %v, want %v", got, tt.want)
 			}
 		})
@@ -84,33 +85,33 @@ func TestIsGoalAchieved(t *testing.T) {
 }
 
 func TestLatest(t *testing.T) {
-	entryHatena := Entry{
+	entryHatena := model.Entry{
 		Title:       "Rustを学ぶ",
 		Body:        "Rustには所有権という概念があります",
 		PublishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST())),
-		Platform: EntryPlatform{
-			Type:     EntryPlatformTypeHatena,
+		Platform: model.EntryPlatform{
+			Type:     model.EntryPlatformTypeHatena,
 			Priority: 1,
 		},
 	}
-	entryZenn := Entry{
+	entryZenn := model.Entry{
 		Title:       "Haskellを学ぶ",
 		Body:        "Haskellは関数型言語です",
 		PublishedAt: time.Date(2025, 1, 2, 12, 0, 0, 0, lo.ToPtr(date.LocationJST())),
-		Platform: EntryPlatform{
-			Type:     EntryPlatformTypeZenn,
+		Platform: model.EntryPlatform{
+			Type:     model.EntryPlatformTypeZenn,
 			Priority: 2,
 		},
 	}
 
 	tests := []struct {
 		name    string
-		entries []*Entry
-		want    mo.Option[*Entry]
+		entries []*model.Entry
+		want    mo.Option[*model.Entry]
 	}{
 		{
 			"returns latest entry when timestampls differ",
-			[]*Entry{
+			[]*model.Entry{
 				&entryHatena,
 				&entryZenn,
 			},
@@ -118,7 +119,7 @@ func TestLatest(t *testing.T) {
 		},
 		{
 			"returns higher priority when timestamps same",
-			[]*Entry{
+			[]*model.Entry{
 				&entryHatena,
 				&entryZenn,
 			},
@@ -126,13 +127,13 @@ func TestLatest(t *testing.T) {
 		},
 		{
 			"returns none when entries slice is empty",
-			[]*Entry{},
-			mo.None[*Entry](),
+			[]*model.Entry{},
+			mo.None[*model.Entry](),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Latest(tt.entries)
+			got := model.Latest(tt.entries)
 			assert.Equal(t, tt.want, got)
 		})
 	}
