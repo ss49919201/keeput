@@ -80,11 +80,10 @@ func Latest(entries []*Entry) mo.Option[*Entry] {
 	}
 	cloned := slices.Clone(entries)
 	slices.SortFunc(cloned, func(a, b *Entry) int {
-		p1 := b.PublishedAt.Compare(a.PublishedAt)
-		if p1 != 0 {
-			return p1
-		}
-		return cmp.Compare(a.Platform.Priority, b.Platform.Priority)
+		return cmp.Or(
+			b.PublishedAt.Compare(a.PublishedAt),
+			cmp.Compare(a.Platform.Priority, b.Platform.Priority),
+		)
 	})
 	return mo.Some(cloned[0])
 }
