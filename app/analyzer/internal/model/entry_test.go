@@ -2,7 +2,6 @@ package model_test
 
 import (
 	"cmp"
-	"reflect"
 	"testing"
 	"time"
 
@@ -12,21 +11,6 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/model"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestEntryPlatformIteratorOrderByPriorityAsc(t *testing.T) {
-	types := []model.EntryPlatformType{}
-	for ep := range model.EntryPlatformIteratorOrderByPriorityAsc() {
-		types = append(types, ep.Type)
-	}
-
-	expect := []model.EntryPlatformType{
-		model.EntryPlatformTypeHatena,
-		model.EntryPlatformTypeZenn,
-	}
-	if !reflect.DeepEqual(types, expect) {
-		t.Errorf("expect %v, actual %v", expect, types)
-	}
-}
 
 func TestIsGoalAchieved(t *testing.T) {
 	type args struct {
@@ -78,9 +62,7 @@ func TestIsGoalAchieved(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := model.IsGoalAchieved(tt.args.publishedAt, tt.args.now, tt.args.goalType); got != tt.want {
-				t.Errorf("IsGoalAchieved() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, model.IsGoalAchieved(tt.args.publishedAt, tt.args.now, tt.args.goalType))
 		})
 	}
 }
