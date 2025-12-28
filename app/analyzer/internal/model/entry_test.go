@@ -1,7 +1,6 @@
 package model_test
 
 import (
-	"cmp"
 	"testing"
 	"time"
 
@@ -68,30 +67,35 @@ func TestIsGoalAchieved(t *testing.T) {
 }
 
 func TestLatest(t *testing.T) {
-	type option struct {
-		publishedAt time.Time
+	jst := lo.ToPtr(date.LocationJST())
+
+	// エントリを事前に生成
+	entryHatenaJan1 := &model.Entry{
+		Title:       "Rustを学ぶ",
+		Body:        "Rustには所有権という概念があります",
+		PublishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, jst),
+		Platform: model.EntryPlatform{
+			Type:     model.EntryPlatformTypeHatena,
+			Priority: 1,
+		},
 	}
-	entryHatena := func(opt option) *model.Entry {
-		return &model.Entry{
-			Title:       "Rustを学ぶ",
-			Body:        "Rustには所有権という概念があります",
-			PublishedAt: cmp.Or(opt.publishedAt, time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))),
-			Platform: model.EntryPlatform{
-				Type:     model.EntryPlatformTypeHatena,
-				Priority: 1,
-			},
-		}
+	entryHatenaFeb1 := &model.Entry{
+		Title:       "Rustを学ぶ",
+		Body:        "Rustには所有権という概念があります",
+		PublishedAt: time.Date(2025, 2, 1, 12, 0, 0, 0, jst),
+		Platform: model.EntryPlatform{
+			Type:     model.EntryPlatformTypeHatena,
+			Priority: 1,
+		},
 	}
-	entryZenn := func(opt option) *model.Entry {
-		return &model.Entry{
-			Title:       "Haskellを学ぶ",
-			Body:        "Haskellは関数型言語です",
-			PublishedAt: cmp.Or(opt.publishedAt, time.Date(2025, 1, 2, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))),
-			Platform: model.EntryPlatform{
-				Type:     model.EntryPlatformTypeZenn,
-				Priority: 2,
-			},
-		}
+	entryZennJan1 := &model.Entry{
+		Title:       "Haskellを学ぶ",
+		Body:        "Haskellは関数型言語です",
+		PublishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, jst),
+		Platform: model.EntryPlatform{
+			Type:     model.EntryPlatformTypeZenn,
+			Priority: 2,
+		},
 	}
 
 	tests := []struct {
@@ -101,19 +105,13 @@ func TestLatest(t *testing.T) {
 	}{
 		{
 			"returns latest entry when timestamps differ",
-			[]*model.Entry{
-				entryHatena(option{publishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))}),
-				entryHatena(option{publishedAt: time.Date(2025, 2, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))}),
-			},
-			mo.Some(entryHatena(option{publishedAt: time.Date(2025, 2, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))})),
+			[]*model.Entry{entryHatenaJan1, entryHatenaFeb1},
+			mo.Some(entryHatenaFeb1),
 		},
 		{
 			"returns higher priority when timestamps same",
-			[]*model.Entry{
-				entryZenn(option{publishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))}),
-				entryHatena(option{publishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))}),
-			},
-			mo.Some(entryHatena(option{publishedAt: time.Date(2025, 1, 1, 12, 0, 0, 0, lo.ToPtr(date.LocationJST()))})),
+			[]*model.Entry{entryZennJan1, entryHatenaJan1},
+			mo.Some(entryHatenaJan1),
 		},
 		{
 			"returns none when entries slice is empty",
