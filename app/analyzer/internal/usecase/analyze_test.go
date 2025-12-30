@@ -19,7 +19,7 @@ import (
 
 func TestAnalyze(t *testing.T) {
 	type args struct {
-		NewFetchLatestEntry      func(t *testing.T) fetcher.FetchLatestEntry
+		NewLatestEntryFetchers   func(t *testing.T) []fetcher.FetchLatestEntry
 		NewPrintAnalysisReport   func(t *testing.T) printer.PrintAnalysisReport
 		NewNotifyAnalysisReport  func(t *testing.T) notifier.NotifyAnalysisReport
 		NewAcquireLock           func(t *testing.T) locker.Acquire
@@ -37,13 +37,15 @@ func TestAnalyze(t *testing.T) {
 		{
 			"return results of achieving goal",
 			args{
-				NewFetchLatestEntry: func(t *testing.T) fetcher.FetchLatestEntry {
-					return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
-						return mo.Ok(mo.Some(&model.Entry{
-							Title:       "Go 言語の slice について",
-							Body:        "Go 言語の slice は参照型です。気をつけましょう。",
-							PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
-						}))
+				NewLatestEntryFetchers: func(t *testing.T) []fetcher.FetchLatestEntry {
+					return []fetcher.FetchLatestEntry{
+						func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
+							return mo.Ok(mo.Some(&model.Entry{
+								Title:       "Go 言語の slice について",
+								Body:        "Go 言語の slice は参照型です。気をつけましょう。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}))
+						},
 					}
 				},
 				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
@@ -110,9 +112,11 @@ func TestAnalyze(t *testing.T) {
 		{
 			"return results of not achieving goal",
 			args{
-				NewFetchLatestEntry: func(t *testing.T) fetcher.FetchLatestEntry {
-					return func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
-						return mo.Ok(mo.None[*model.Entry]())
+				NewLatestEntryFetchers: func(t *testing.T) []fetcher.FetchLatestEntry {
+					return []fetcher.FetchLatestEntry{
+						func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
+							return mo.Ok(mo.None[*model.Entry]())
+						},
 					}
 				},
 				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
@@ -168,7 +172,7 @@ func TestAnalyze(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewAnalyze(
-				tt.args.NewFetchLatestEntry(t),
+				tt.args.NewLatestEntryFetchers(t),
 				tt.args.NewPrintAnalysisReport(t),
 				tt.args.NewNotifyAnalysisReport(t),
 				tt.args.NewAcquireLock(t),

@@ -69,7 +69,6 @@ func TestIsGoalAchieved(t *testing.T) {
 func TestLatest(t *testing.T) {
 	jst := lo.ToPtr(date.LocationJST())
 
-	// エントリを事前に生成
 	entryHatenaJan1 := &model.Entry{
 		Title:       "Rustを学ぶ",
 		Body:        "Rustには所有権という概念があります",
