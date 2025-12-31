@@ -66,14 +66,14 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, latestEntryFetchers 
 		func() mo.Result[mo.Option[*model.Entry]] {
 			entries := make([]*model.Entry, 0, len(latestEntryFetchers))
 			for _, fetch := range latestEntryFetchers {
-				result := fetch(ctx)
+				entry, err := fetch(ctx).Get()
 				if err != nil {
 					return mo.Err[mo.Option[*model.Entry]](err)
 				}
-				if result.MustGet().IsNone() {
+				if entry.IsNone() {
 					continue
 				}
-				entries = append(entries, result.MustGet().MustGet())
+				entries = append(entries, entry.MustGet())
 			}
 			return mo.Ok(model.Latest(entries))
 		}(),
