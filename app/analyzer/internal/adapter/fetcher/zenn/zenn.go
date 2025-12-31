@@ -18,7 +18,7 @@ func NewFetchLatestEntry() fetcher.FetchLatestEntry {
 }
 
 func fetchLatestEntry(ctx context.Context, feedURL string) mo.Result[mo.Option[*model.Entry]] {
-	entriesResult := internal.Fetch(ctx, feedURL)
+	entriesResult := internal.Fetch(ctx, feedURL, model.EntryPlatformZenn())
 	if entriesResult.IsError() {
 		return mo.Err[mo.Option[*model.Entry]](entriesResult.Error())
 	}

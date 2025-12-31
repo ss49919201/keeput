@@ -2,7 +2,6 @@ package model
 
 import (
 	"cmp"
-	"iter"
 	"slices"
 	"time"
 
@@ -51,26 +50,17 @@ type EntryPlatform struct {
 	Priority int
 }
 
-// DANGER: 再代入禁止
-// 要素の順序は優先度の昇順
-var entryPlatforms = []*EntryPlatform{
-	{
-		Type:     EntryPlatformTypeHatena,
-		Priority: 1,
-	},
-	{
+func EntryPlatformHatena() EntryPlatform {
+	return EntryPlatform{
 		Type:     EntryPlatformTypeZenn,
-		Priority: 2,
-	},
+		Priority: 1,
+	}
 }
 
-func EntryPlatformIteratorOrderByPriorityAsc() iter.Seq[*EntryPlatform] {
-	return func(yield func(*EntryPlatform) bool) {
-		for i := range len(entryPlatforms) {
-			if !yield(entryPlatforms[i]) {
-				break
-			}
-		}
+func EntryPlatformZenn() EntryPlatform {
+	return EntryPlatform{
+		Type:     EntryPlatformTypeZenn,
+		Priority: 2,
 	}
 }
 
