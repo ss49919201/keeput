@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -64,16 +65,32 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, latestEntryFetchers 
 
 	return result.Pipe6(
 		func() mo.Result[mo.Option[*model.Entry]] {
-			entries := make([]*model.Entry, 0, len(latestEntryFetchers))
+			resultCh := make(chan mo.Result[mo.Option[*model.Entry]], len(latestEntryFetchers))
+			var wg sync.WaitGroup
 			for _, fetch := range latestEntryFetchers {
-				entry, err := fetch(ctx).Get()
+				wg.Go(func() {
+					resultCh <- fetch(ctx)
+				})
+			}
+			wg.Wait()
+			close(resultCh)
+			entries := make([]*model.Entry, 0, len(latestEntryFetchers))
+			var errs []error
+			for result := range resultCh {
+				entry, err := result.Get()
 				if err != nil {
-					return mo.Err[mo.Option[*model.Entry]](err)
+					errs = append(errs, err)
+					continue
 				}
 				if entry.IsNone() {
 					continue
 				}
 				entries = append(entries, entry.MustGet())
+			}
+			if len(errs) == len(latestEntryFetchers) {
+				return mo.Err[mo.Option[*model.Entry]](fmt.Errorf("all entry fetch operations failed: %w", errors.Join(errs...)))
+			} else if len(errs) > 0 && len(errs) < len(latestEntryFetchers) {
+				slog.Warn("some entry fetch operations failed", slog.String("error", errors.Join(errs...).Error()))
 			}
 			return mo.Ok(model.Latest(entries))
 		}(),
