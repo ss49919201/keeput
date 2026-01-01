@@ -19,11 +19,11 @@ provider "aws" {
 module "storage" {
   source          = "../../../module/analyzer/storage"
   env             = "sandbox"
-  scheduler_state = "DISABLED"
 }
 
 module "service" {
   source    = "../../../module/analyzer/service"
   env       = "sandbox"
+  scheduler_state = "DISABLED"
   s3_bucket = module.storage.s3_bucket
 }

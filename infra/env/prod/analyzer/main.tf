@@ -19,11 +19,11 @@ provider "aws" {
 module "storage" {
   source          = "../../../module/analyzer/storage"
   env             = "prod"
-  scheduler_state = "ENABLED"
 }
 
 module "service" {
   source    = "../../../module/analyzer/service"
   env       = "prod"
+  scheduler_state = "ENABLED"
   s3_bucket = module.storage.s3_bucket
 }
