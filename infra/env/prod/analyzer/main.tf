@@ -17,8 +17,9 @@ provider "aws" {
 }
 
 module "storage" {
-  source = "../../../module/analyzer/storage"
-  env    = "prod"
+  source          = "../../../module/analyzer/storage"
+  env             = "prod"
+  scheduler_state = "ENABLED"
 }
 
 module "service" {

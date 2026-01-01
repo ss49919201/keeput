@@ -17,8 +17,9 @@ provider "aws" {
 }
 
 module "storage" {
-  source = "../../../module/analyzer/storage"
-  env    = "sandbox"
+  source          = "../../../module/analyzer/storage"
+  env             = "sandbox"
+  scheduler_state = "DISABLED"
 }
 
 module "service" {
