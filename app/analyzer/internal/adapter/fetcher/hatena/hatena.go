@@ -24,7 +24,7 @@ func fetchLatestEntry(ctx context.Context, feedURL string) mo.Result[mo.Option[*
 	q.Set("size", "1")
 	u.RawQuery = q.Encode()
 
-	entriesResult := internal.Fetch(ctx, u.String())
+	entriesResult := internal.Fetch(ctx, u.String(), model.EntryPlatformHatena())
 	if entriesResult.IsError() {
 		return mo.Err[mo.Option[*model.Entry]](entriesResult.Error())
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/mmcdole/gofeed"
 	"github.com/samber/lo"
@@ -18,7 +17,7 @@ var httpClient = sync.OnceValue(func() *http.Client {
 })
 
 // NOTE: 公開日が存在しないエントリは除外する。
-func Fetch(ctx context.Context, feedURL string) (result mo.Result[[]*model.Entry]) {
+func Fetch(ctx context.Context, feedURL string, entryPlatform model.EntryPlatform) (result mo.Result[[]*model.Entry]) {
 	fp := gofeed.NewParser()
 	fp.Client = httpClient()
 	feed, err := fp.ParseURLWithContext(feedURL, ctx)
@@ -38,14 +37,9 @@ func Fetch(ctx context.Context, feedURL string) (result mo.Result[[]*model.Entry
 					Title:       item.Title,
 					Body:        item.Content,
 					PublishedAt: *item.PublishedParsed,
+					Platform:    entryPlatform,
 				}, true
 			},
 		),
 	)
-}
-
-func FilterByDateRange(entries []*model.Entry, from, to time.Time) []*model.Entry {
-	return lo.Filter(entries, func(entry *model.Entry, _ int) bool {
-		return !from.After(entry.PublishedAt) && !to.Before(entry.PublishedAt)
-	})
 }

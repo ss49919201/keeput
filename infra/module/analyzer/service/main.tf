@@ -9,6 +9,9 @@ variable "s3_bucket" {
   })
 }
 
+variable "scheduler_state" {
+  type = string # DISABLED | ENABLED
+}
 
 resource "aws_ecr_repository" "analyzer_lambda" {
   name                 = "keeput-analyzer-lambda-${var.env}"
@@ -189,4 +192,5 @@ resource "aws_scheduler_schedule" "analyzer_lambda" {
     arn      = aws_lambda_function.analyzer_lambda.arn
     role_arn = aws_iam_role.scheduler.arn
   }
+  state = var.scheduler_state
 }
