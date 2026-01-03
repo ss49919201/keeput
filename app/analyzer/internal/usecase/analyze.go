@@ -66,18 +66,15 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, latestEntryFetchers 
 	return result.Pipe6(
 		func() mo.Result[mo.Option[*model.Entry]] {
 			resultCh := make(chan mo.Result[mo.Option[*model.Entry]], len(latestEntryFetchers))
-			var wg sync.WaitGroup
 			for _, fetch := range latestEntryFetchers {
-				wg.Go(func() {
+				go func() {
 					resultCh <- fetch(ctx)
-				})
+				}()
 			}
-			wg.Wait()
-			close(resultCh)
 			entries := make([]*model.Entry, 0, len(latestEntryFetchers))
 			var errs []error
-			for result := range resultCh {
-				entry, err := result.Get()
+			for range len(latestEntryFetchers) {
+				entry, err := (<-resultCh).Get()
 				if err != nil {
 					errs = append(errs, err)
 					continue

@@ -15,6 +15,7 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/printer"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAnalyze(t *testing.T) {
@@ -168,6 +169,129 @@ func TestAnalyze(t *testing.T) {
 				IsGoalAchieved: false,
 			}),
 		},
+		{
+			"return error when all latestEntryFetchers fail",
+			args{
+				NewLatestEntryFetchers: func(t *testing.T) []fetcher.FetchLatestEntry {
+					return []fetcher.FetchLatestEntry{
+						func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
+							return mo.Err[mo.Option[*model.Entry]](assert.AnError)
+						},
+						func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
+							return mo.Err[mo.Option[*model.Entry]](assert.AnError)
+						},
+					}
+				},
+				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
+					return func(report *model.AnalysisReport) error {
+						t.Error("should not be called")
+						return nil
+					}
+				},
+				NewNotifyAnalysisReport: func(t *testing.T) notifier.NotifyAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						t.Error("should not be called")
+						return nil
+					}
+				},
+				NewAcquireLock: func(t *testing.T) locker.Acquire {
+					return func(ctx context.Context, lockID string) mo.Result[bool] {
+						return mo.Ok(true)
+					}
+				},
+				NewReleaseLock: func(t *testing.T) locker.Release {
+					return func(ctx context.Context, lockID string) error {
+						return nil
+					}
+				},
+				NewPersistAnalysisReport: func(t *testing.T) persister.PersistAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						t.Error("should not be called")
+						return nil
+					}
+				},
+				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
+				input: &usecase.AnalyzeInput{
+					Goal: model.GoalTypeRecentWeek,
+				},
+			},
+			mo.Err[*usecase.AnalyzeOutput](assert.AnError),
+		},
+		{
+			"continue processing when some latestEntryFetchers fail",
+			args{
+				NewLatestEntryFetchers: func(t *testing.T) []fetcher.FetchLatestEntry {
+					return []fetcher.FetchLatestEntry{
+						func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
+							return mo.Ok(mo.Some(&model.Entry{
+								Title:       "Javaについて",
+								Body:        "JavaはJVMで動作します。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}))
+						},
+						func(ctx context.Context) mo.Result[mo.Option[*model.Entry]] {
+							return mo.Err[mo.Option[*model.Entry]](assert.AnError)
+						},
+					}
+				},
+				NewPrintAnalysisReport: func(t *testing.T) printer.PrintAnalysisReport {
+					return func(report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Javaについて",
+								Body:        "JavaはJVMで動作します。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
+						return nil
+					}
+				},
+				NewNotifyAnalysisReport: func(t *testing.T) notifier.NotifyAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Javaについて",
+								Body:        "JavaはJVMで動作します。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
+						return nil
+					}
+				},
+				NewAcquireLock: func(t *testing.T) locker.Acquire {
+					return func(ctx context.Context, lockID string) mo.Result[bool] {
+						return mo.Ok(true)
+					}
+				},
+				NewReleaseLock: func(t *testing.T) locker.Release {
+					return func(ctx context.Context, lockID string) error {
+						return nil
+					}
+				},
+				NewPersistAnalysisReport: func(t *testing.T) persister.PersistAnalysisReport {
+					return func(ctx context.Context, report *model.AnalysisReport) error {
+						assert.Equal(t, &model.AnalysisReport{
+							IsGoalAchieved: true,
+							LatestEntry: mo.Some(&model.Entry{
+								Title:       "Javaについて",
+								Body:        "JavaはJVMで動作します。",
+								PublishedAt: time.Date(2025, 1, 9, 10, 0, 0, 0, time.UTC),
+							}),
+						}, report)
+						return nil
+					}
+				},
+				ctx: appctx.SetNow(context.Background(), time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)),
+				input: &usecase.AnalyzeInput{
+					Goal: model.GoalTypeRecentWeek,
+				},
+			},
+			mo.Ok(&usecase.AnalyzeOutput{
+				IsGoalAchieved: true,
+			}),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -181,7 +305,11 @@ func TestAnalyze(t *testing.T) {
 			)(
 				tt.args.ctx, tt.args.input,
 			)
-			assert.Equal(t, tt.want, got)
+			if tt.want.IsError() {
+				require.True(t, got.IsError(), "expected error but got success")
+			} else {
+				require.Equal(t, tt.want, got)
+			}
 		})
 	}
 }
