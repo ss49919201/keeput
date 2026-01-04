@@ -52,7 +52,7 @@ type EntryPlatform struct {
 
 func EntryPlatformHatena() EntryPlatform {
 	return EntryPlatform{
-		Type:     EntryPlatformTypeZenn,
+		Type:     EntryPlatformTypeHatena,
 		Priority: 1,
 	}
 }
