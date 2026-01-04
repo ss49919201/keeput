@@ -26,9 +26,7 @@ var httpClient = sync.OnceValue(func() *http.Client {
 })
 
 func NewAcquire() locker.Acquire {
-	return func(ctx context.Context, lockID string) mo.Result[bool] {
-		return acquire(ctx, lockID)
-	}
+	return acquire
 }
 
 type acquireRequest struct {
