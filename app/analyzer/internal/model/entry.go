@@ -1,10 +1,12 @@
 package model
 
 import (
-	"iter"
+	"cmp"
+	"slices"
 	"time"
 
 	"github.com/samber/lo"
+	"github.com/samber/mo"
 	"github.com/ss49919201/keeput/app/analyzer/internal/date"
 )
 
@@ -12,6 +14,7 @@ type Entry struct {
 	Title       string
 	Body        string
 	PublishedAt time.Time
+	Platform    EntryPlatform
 }
 
 type GoalType int
@@ -36,10 +39,6 @@ func IsGoalAchieved(publishedAt, now time.Time, goalType GoalType) bool {
 
 type EntryPlatformType int
 
-func (e EntryPlatformType) IsZero() bool {
-	return e == EntryPlatformTypeZero
-}
-
 const (
 	EntryPlatformTypeZero EntryPlatformType = iota
 	EntryPlatformTypeZenn
@@ -47,33 +46,34 @@ const (
 )
 
 type EntryPlatform struct {
-	entryPlatformType EntryPlatformType
-	priority          int
+	Type     EntryPlatformType
+	Priority int
 }
 
-func (e *EntryPlatform) Type() EntryPlatformType {
-	return e.entryPlatformType
-}
-
-// DANGER: 再代入禁止
-// 要素の順序は優先度の昇順
-var entryPlatforms = []*EntryPlatform{
-	{
-		entryPlatformType: EntryPlatformTypeHatena,
-		priority:          1,
-	},
-	{
-		entryPlatformType: EntryPlatformTypeZenn,
-		priority:          2,
-	},
-}
-
-func EntryPlatformIteratorOrderByPriorityAsc() iter.Seq[*EntryPlatform] {
-	return func(yield func(*EntryPlatform) bool) {
-		for i := range len(entryPlatforms) {
-			if !yield(entryPlatforms[i]) {
-				break
-			}
-		}
+func EntryPlatformHatena() EntryPlatform {
+	return EntryPlatform{
+		Type:     EntryPlatformTypeZenn,
+		Priority: 1,
 	}
+}
+
+func EntryPlatformZenn() EntryPlatform {
+	return EntryPlatform{
+		Type:     EntryPlatformTypeZenn,
+		Priority: 2,
+	}
+}
+
+func Latest(entries []*Entry) mo.Option[*Entry] {
+	if len(entries) < 1 {
+		return mo.None[*Entry]()
+	}
+	cloned := slices.Clone(entries)
+	slices.SortFunc(cloned, func(a, b *Entry) int {
+		return cmp.Or(
+			b.PublishedAt.Compare(a.PublishedAt),
+			cmp.Compare(a.Platform.Priority, b.Platform.Priority),
+		)
+	})
+	return mo.Some(cloned[0])
 }

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -21,9 +22,9 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-func NewAnalyze(fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) usecase.Analyze {
+func NewAnalyze(latestEntryFetchers []fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) usecase.Analyze {
 	return func(ctx context.Context, in *usecase.AnalyzeInput) mo.Result[*usecase.AnalyzeOutput] {
-		return analyze(ctx, in, fetchLatestEntry, printAnalysisReport, notifyAnalysisReport, acquireLock, releaseLock, persistAnalysisReport)
+		return analyze(ctx, in, latestEntryFetchers, printAnalysisReport, notifyAnalysisReport, acquireLock, releaseLock, persistAnalysisReport)
 	}
 }
 
@@ -46,7 +47,7 @@ var (
 	})
 )
 
-func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
+func analyze(ctx context.Context, in *usecase.AnalyzeInput, latestEntryFetchers []fetcher.FetchLatestEntry, printAnalysisReport printer.PrintAnalysisReport, notifyAnalysisReport notifier.NotifyAnalysisReport, acquireLock locker.Acquire, releaseLock locker.Release, persistAnalysisReport persister.PersistAnalysisReport) mo.Result[*usecase.AnalyzeOutput] {
 	// NOTE: defer でのロック解放遅延を analyze のブロックで行いたいため、ロック処理は result.Pipe に含めない
 	lockID := lockIDPrefixAnalyze + ":" + appctx.GetNowOr(ctx, time.Now()).Format(time.DateOnly)
 	acquired, err := acquireLock(ctx, lockID).Get()
@@ -63,7 +64,33 @@ func analyze(ctx context.Context, in *usecase.AnalyzeInput, fetchLatestEntry fet
 	}()
 
 	return result.Pipe6(
-		fetchLatestEntry(ctx),
+		func() mo.Result[mo.Option[*model.Entry]] {
+			resultCh := make(chan mo.Result[mo.Option[*model.Entry]], len(latestEntryFetchers))
+			for _, fetch := range latestEntryFetchers {
+				go func() {
+					resultCh <- fetch(ctx)
+				}()
+			}
+			entries := make([]*model.Entry, 0, len(latestEntryFetchers))
+			var errs []error
+			for range len(latestEntryFetchers) {
+				entry, err := (<-resultCh).Get()
+				if err != nil {
+					errs = append(errs, err)
+					continue
+				}
+				if entry.IsNone() {
+					continue
+				}
+				entries = append(entries, entry.MustGet())
+			}
+			if len(errs) == len(latestEntryFetchers) {
+				return mo.Err[mo.Option[*model.Entry]](fmt.Errorf("all entry fetch operations failed: %w", errors.Join(errs...)))
+			} else if len(errs) > 0 && len(errs) < len(latestEntryFetchers) {
+				slog.Warn("some entry fetch operations failed", slog.String("error", errors.Join(errs...).Error()))
+			}
+			return mo.Ok(model.Latest(entries))
+		}(),
 		result.Map(func(entry mo.Option[*model.Entry]) *model.AnalysisReport {
 			return model.Analyze(entry, appctx.GetNowOr(ctx, time.Now()), in.Goal)
 		}),
