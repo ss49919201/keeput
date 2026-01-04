@@ -9,7 +9,6 @@ import (
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/locker/cfworker"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/notifier/discord"
 	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/persister/s3"
-	"github.com/ss49919201/keeput/app/analyzer/internal/adapter/printer/stdout"
 	"github.com/ss49919201/keeput/app/analyzer/internal/port/fetcher"
 	usecaseport "github.com/ss49919201/keeput/app/analyzer/internal/port/usecase"
 	usecaseadapter "github.com/ss49919201/keeput/app/analyzer/internal/usecase"
@@ -28,7 +27,6 @@ func NewAnalyzeUsecase(ctx context.Context) (usecaseport.Analyze, error) {
 			hatena.NewFetchLatestEntry(),
 			zenn.NewFetchLatestEntry(),
 		},
-		stdout.PrintAnalysisReport,
 		discord.NewNotifyAnalysisReport(),
 		cfworker.NewAcquire(),
 		cfworker.NewRelease(),
