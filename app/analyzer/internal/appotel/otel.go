@@ -4,9 +4,12 @@ import (
 	"context"
 	"sync"
 
+	"go.opentelemetry.io/contrib/detectors/aws/lambda"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.38.0"
 
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -31,6 +34,31 @@ var (
 	initMeterProviderOnce sync.Once
 	flushMetrics          typeFlushMetrics
 )
+
+func NewResource(ctx context.Context) (*resource.Resource, error) {
+	return resource.New(ctx, resource.WithAttributes(
+		commonResourceAttributes()...,
+	))
+}
+
+func NewLambdaResrouce(ctx context.Context) (*resource.Resource, error) {
+	return resource.New(
+		ctx,
+		resource.WithDetectors(
+			lambda.NewResourceDetector(),
+		),
+		resource.WithAttributes(
+			commonResourceAttributes()...,
+		))
+}
+
+func commonResourceAttributes() []attribute.KeyValue {
+	return []attribute.KeyValue{
+		semconv.ServiceName("keeput-analyzer"),
+		semconv.ServiceVersion(""),            // TODO
+		semconv.DeploymentEnvironmentName(""), // TODO
+	}
+}
 
 func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initTraceProviderOnce.Do(func() {
