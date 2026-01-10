@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/ss49919201/keeput/app/analyzer/internal/config"
+
 	"go.opentelemetry.io/contrib/detectors/aws/lambda"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -52,8 +54,7 @@ func NewLambdaResrouce(ctx context.Context) (*resource.Resource, error) {
 func commonResourceAttributes() []attribute.KeyValue {
 	return []attribute.KeyValue{
 		semconv.ServiceName("keeput-analyzer"),
-		semconv.ServiceVersion(""),            // TODO
-		semconv.DeploymentEnvironmentName(""), // TODO
+		semconv.DeploymentEnvironmentName(config.Env()),
 	}
 }
 
