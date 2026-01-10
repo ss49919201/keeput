@@ -23,6 +23,10 @@ func isLocal() bool {
 	return strings.ToLower(env()) == "local"
 }
 
+func Env() string {
+	return env()
+}
+
 var feedURLZenn = sync.OnceValue(func() string {
 	return os.Getenv("FEED_URL_ZENN")
 })

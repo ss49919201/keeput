@@ -31,7 +31,7 @@ func init() {
 func run(ctx context.Context) (err error) {
 	defer func() {
 		if err != nil {
-			appotel.RecordError(ctx, err)
+			appotel.RecordSpanError(ctx, err)
 		}
 	}()
 

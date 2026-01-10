@@ -38,10 +38,12 @@ func (f *forceFlusher) ForceFlush(ctx context.Context) error {
 		}
 	}
 
-	if err := appotel.FlushMetrics(ctx); err != nil {
-		errs = append(errs, err)
-	} else {
-		slog.Debug("meter provider has completed flushing")
+	if flusher, ok := otel.GetMeterProvider().(otellambda.Flusher); ok {
+		if err := flusher.ForceFlush(ctx); err != nil {
+			errs = append(errs, err)
+		} else {
+			slog.Debug("meter provider has completed flushing")
+		}
 	}
 
 	return errors.Join(errs...)
@@ -68,7 +70,7 @@ func parseGoalType(typ goalType) model.GoalType {
 func handleRequest(ctx context.Context, payload payload) (err error) {
 	defer func() {
 		if err != nil {
-			appotel.RecordError(ctx, err)
+			appotel.RecordSpanError(ctx, err)
 		}
 	}()
 
