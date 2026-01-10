@@ -70,7 +70,7 @@ func parseGoalType(typ goalType) model.GoalType {
 func handleRequest(ctx context.Context, payload payload) (err error) {
 	defer func() {
 		if err != nil {
-			appotel.RecordError(ctx, err)
+			appotel.RecordSpanError(ctx, err)
 		}
 	}()
 

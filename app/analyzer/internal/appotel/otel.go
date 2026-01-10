@@ -103,6 +103,6 @@ func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 }
 
 
-func RecordError(ctx context.Context, err error) {
+func RecordSpanError(ctx context.Context, err error) {
 	trace.SpanFromContext(ctx).RecordError(err, trace.WithStackTrace(true))
 }
