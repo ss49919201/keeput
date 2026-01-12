@@ -68,6 +68,7 @@ jobs:
         with:
           version: v1.4.1
       - env:
+          ENV: prodcution
           FUNCTION_NAME: keeput-analyzer-prod
           TFSTATE_URL: s3://keeput-tf-state/prod/analyzer/service/terraform.tfstate
           ECR_REPOSITORY: keeput-analyzer-lambda-prod

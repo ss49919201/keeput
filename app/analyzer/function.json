@@ -7,6 +7,7 @@
   },
   "Environment": {
     "Variables": {
+      "ENV": "{{ env `ENV` `sandbox`}}",
       "DISCORD_WEBHOOK_URL": "{{ ssm `/keeput/analyzer/discord-webhook-url` }}",
       "MACKEREL_API_KEY": "{{ ssm `/keeput/mackerel-api-key` }}",
       "LOG_LEVEL": "{{ env `LOG_LEVEL` `WARN`}}",

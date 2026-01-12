@@ -4,20 +4,23 @@ import (
 	"context"
 	"sync"
 
+	"github.com/ss49919201/keeput/app/analyzer/internal/config"
+
+	"go.opentelemetry.io/contrib/detectors/aws/lambda"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.38.0"
 
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type typeShutdownProvider = func(context.Context) error
-type typeFlushMetrics = func(context.Context) error
 
 var (
 	// TraceProvider
@@ -29,8 +32,31 @@ var (
 	shutdownMeterProvider typeShutdownProvider
 	errInitMeterProvider  error
 	initMeterProviderOnce sync.Once
-	flushMetrics          typeFlushMetrics
 )
+
+func NewResource(ctx context.Context) (*resource.Resource, error) {
+	return resource.New(ctx, resource.WithAttributes(
+		commonResourceAttributes()...,
+	))
+}
+
+func NewLambdaResrouce(ctx context.Context) (*resource.Resource, error) {
+	return resource.New(
+		ctx,
+		resource.WithDetectors(
+			lambda.NewResourceDetector(),
+		),
+		resource.WithAttributes(
+			commonResourceAttributes()...,
+		))
+}
+
+func commonResourceAttributes() []attribute.KeyValue {
+	return []attribute.KeyValue{
+		semconv.ServiceName("keeput-analyzer"),
+		semconv.DeploymentEnvironmentName(config.Env()),
+	}
+}
 
 func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initTraceProviderOnce.Do(func() {
@@ -58,7 +84,7 @@ func InitTraceProvider(ctx context.Context) (typeShutdownProvider, error) {
 	return shutdownTraceProvider, errInitTraceProvider
 }
 
-// NOTE: MetricReader は ManualReader なので FlushMetrics を実行してオンデマンドに収集、送出が必要
+// NOTE: MetricReader は PeriodicReader なので定期的に自動でメトリクスを収集、送出する
 func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 	initMeterProviderOnce.Do(func() {
 		exporter, err := otlpmetrichttp.New(
@@ -69,29 +95,15 @@ func InitMeterProvider(ctx context.Context) (typeShutdownProvider, error) {
 			errInitMeterProvider = err
 			return
 		}
-		reader := metric.NewManualReader()
+		reader := metric.NewPeriodicReader(exporter)
 		mp := metric.NewMeterProvider(metric.WithReader(reader))
 		otel.SetMeterProvider(mp)
 		shutdownMeterProvider = mp.Shutdown
-		flushMetrics = func(ctx context.Context) error {
-			var resource metricdata.ResourceMetrics
-			if err := reader.Collect(ctx, &resource); err != nil {
-				return err
-			}
-			return exporter.Export(ctx, &resource)
-		}
 	})
 	return shutdownMeterProvider, errInitMeterProvider
 }
 
-func FlushMetrics(ctx context.Context) error {
-	_, err := InitMeterProvider(ctx)
-	if err != nil {
-		return err
-	}
-	return flushMetrics(ctx)
-}
 
-func RecordError(ctx context.Context, err error) {
+func RecordSpanError(ctx context.Context, err error) {
 	trace.SpanFromContext(ctx).RecordError(err, trace.WithStackTrace(true))
 }
