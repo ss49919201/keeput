@@ -82,3 +82,47 @@ var s3BucketName = sync.OnceValue(func() string {
 func S3BucketName() string {
 	return s3BucketName()
 }
+
+var postgresUser = sync.OnceValue(func() string {
+	return os.Getenv("POSTGRES_USER")
+})
+
+func PostgresUser() string {
+	return postgresUser()
+}
+
+var postgresPassword = sync.OnceValue(func() string {
+	return os.Getenv("POSTGRES_PASSWORD")
+})
+
+func PostgresPassword() string {
+	return postgresPassword()
+}
+
+var postgresHost = sync.OnceValue(func() string {
+	return os.Getenv("POSTGRES_HOST")
+})
+
+func PostgresHost() string {
+	return postgresHost()
+}
+
+var postgresPort = sync.OnceValue(func() string {
+	v := os.Getenv("POSTGRES_PORT")
+	if v == "" {
+		return "5432"
+	}
+	return v
+})
+
+func PostgresPort() string {
+	return postgresPort()
+}
+
+var postgresDBName = sync.OnceValue(func() string {
+	return os.Getenv("POSTGRES_DBNAME")
+})
+
+func PostgresDBName() string {
+	return postgresDBName()
+}

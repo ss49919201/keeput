@@ -1,15 +1,14 @@
 services:
-  mysql:
-    image: mysql:8
+  postgres:
+    image: postgres:17
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: keeput
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      POSTGRES_DB: keeput
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
-      - 127.0.0.1:3306:3306
+      - 127.0.0.1:5432:5432
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  mysql-data:
+  postgres-data:
