@@ -107,11 +107,15 @@ func main() {
 			otellambda.WithFlusher(&forceFlusher{}),
 		),
 		lambda.WithEnableSIGTERM(func() {
-			if err := shutdownMeterProvider(ctx); err != nil {
-				slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
+			if shutdownTraceProvider != nil {
+				if err := shutdownTraceProvider(ctx); err != nil {
+					slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
+				}
 			}
-			if err := shutdownTraceProvider(ctx); err != nil {
-				slog.Warn("failed to shutdown trace provider", slog.String("error", err.Error()))
+			if shutdownMeterProvider != nil {
+				if err := shutdownMeterProvider(ctx); err != nil {
+					slog.Warn("failed to shutdown meter provider", slog.String("error", err.Error()))
+				}
 			}
 		}),
 	)
